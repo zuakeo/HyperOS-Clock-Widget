@@ -1,0 +1,19 @@
+# 构建产物
+build/
+dist/
+*.apk
+
+# 调试截图（只保留 docs/ 下的预览图）
+/*.png
+/*.jpg
+/*.jpeg
+
+# 本机临时文件
+hometweaks*.bin
+tweaks_base.apk
+tweaks_apk/
+*.bak
+*.orig
+
+# 与本项目无关的本机文档
+HomeTweaks*.md

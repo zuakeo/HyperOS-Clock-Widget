@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 壁纸偏暗 -> 白色文字；点日期行开日历，点时间行开时钟，点空白处重新取色 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_vertical|start"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
+
+    <!-- 包一层只是为了把触摸区撑大：15sp 的字直接点太小 -->
+    <FrameLayout
+        android:id="@+id/widget_date_touch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="8dp"
+        android:paddingBottom="6dp">
+
+        <TextClock
+            android:id="@+id/widget_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif"
+            android:format24Hour="@string/date_format"
+            android:format12Hour="@string/date_format"
+            android:includeFontPadding="false"
+            android:shadowColor="#59000000"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="3"
+            android:textColor="#F2FFFFFF"
+            android:textSize="15sp" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/widget_time_touch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="2dp"
+        android:paddingBottom="8dp">
+
+        <TextClock
+            android:id="@+id/widget_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:format24Hour="HH:mm"
+            android:format12Hour="h:mm"
+            android:includeFontPadding="false"
+            android:shadowColor="#59000000"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="4"
+            android:textColor="#FFFFFFFF"
+            android:textSize="56sp" />
+    </FrameLayout>
+
+</LinearLayout>

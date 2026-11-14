@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.zuakeo.clockwidget">
+
+    <!--
+        不需要任何权限：
+        - 不取壁纸位图（Android 14+ 那条路本就要特权），只用 getWallpaperColors()，免权限；
+        - 不用闹钟，周期刷新由 appwidget-provider 的 updatePeriodMillis 驱动。
+    -->
+
+    <!--
+        Android 11+ 包可见性：不声明 queries 就看不到其它 App，
+        getLaunchIntentForPackage() 对时钟/日历一律返回 null（踩过）。
+        这里同时声明具体包名（精准）和 intent 过滤（兜其它 ROM）。
+    -->
+    <queries>
+        <package android:name="com.android.deskclock" />
+        <package android:name="com.miui.clock" />
+        <package android:name="com.google.android.deskclock" />
+        <package android:name="com.android.BBKClock" />
+        <package android:name="com.sec.android.app.clockpackage" />
+        <package android:name="com.oneplus.deskclock" />
+        <package android:name="com.oplus.deskclock" />
+
+        <package android:name="com.android.calendar" />
+        <package android:name="com.miui.calendar" />
+        <package android:name="com.google.android.calendar" />
+        <package android:name="com.samsung.android.calendar" />
+        <package android:name="com.oneplus.calendar" />
+        <package android:name="com.oplus.calendar" />
+
+        <intent>
+            <action android:name="android.intent.action.SHOW_ALARMS" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.APP_CALENDAR" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="content" android:host="com.android.calendar" />
+        </intent>
+    </queries>
+
+    <application
+        android:label="@string/app_name"
+        android:icon="@drawable/ic_launcher"
+        android:allowBackup="false">
+
+        <!-- 小组件提供方 -->
+        <receiver
+            android:name=".ClockWidgetProvider"
+            android:exported="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/clock_widget_info" />
+        </receiver>
+
+        <!--
+            换壁纸广播（尽力而为）。
+            ACTION_WALLPAPER_CHANGED 不在 Android 8 的隐式广播豁免名单内，
+            后台时可能收不到；收不到也没有代价，最终一致由 30 分钟周期刷新 +
+            点击组件手动刷新保证。
+        -->
+        <receiver
+            android:name=".WallpaperChangedReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.WALLPAPER_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <!--
+            改时间 / 改时区 / 改语言：这三个都在 Android 8 隐式广播豁免名单内，
+            静态注册有效，用于让 12/24 小时制与语言切换立即生效。
+        -->
+        <receiver
+            android:name=".SystemEventReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>
