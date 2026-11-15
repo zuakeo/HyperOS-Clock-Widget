@@ -27,6 +27,11 @@ final class WidgetSettings {
     static final String K_TIME_SIZE = "time_size";
     static final String K_DATE_SIZE = "date_size";
     static final String K_WEIGHT = "time_weight";
+    static final String K_TEXT_COLOR = "text_color";
+
+    static final String C_AUTO = "auto";
+    static final String C_WHITE = "white";
+    static final String C_DARK = "dark";
 
     static final String W_LIGHT = "light";
     static final String W_NORMAL = "normal";
@@ -49,11 +54,12 @@ final class WidgetSettings {
     final int timeSizeSp;
     final int dateSizeSp;
     final String weight;
+    final String textColor;
 
     private WidgetSettings(boolean showDate, boolean showWeekday, boolean showLunar,
                            boolean showIcon, boolean showTemp, boolean showCity,
                            boolean showSeconds, boolean fahrenheit,
-                           int timeSizeSp, int dateSizeSp, String weight) {
+                           int timeSizeSp, int dateSizeSp, String weight, String textColor) {
         this.showDate = showDate;
         this.showWeekday = showWeekday;
         this.showLunar = showLunar;
@@ -65,6 +71,7 @@ final class WidgetSettings {
         this.timeSizeSp = timeSizeSp;
         this.dateSizeSp = dateSizeSp;
         this.weight = weight;
+        this.textColor = textColor;
     }
 
     static WidgetSettings load(Context context) {
@@ -80,7 +87,8 @@ final class WidgetSettings {
                 p.getBoolean(K_FAHRENHEIT, false),
                 clamp(p.getInt(K_TIME_SIZE, 62), TIME_SIZE_MIN, TIME_SIZE_MAX),
                 clamp(p.getInt(K_DATE_SIZE, 15), DATE_SIZE_MIN, DATE_SIZE_MAX),
-                normalizeWeight(p.getString(K_WEIGHT, W_MEDIUM)));
+                normalizeWeight(p.getString(K_WEIGHT, W_MEDIUM)),
+                normalizeColor(p.getString(K_TEXT_COLOR, C_AUTO)));
     }
 
     static void putBool(Context context, String key, boolean value) {
@@ -110,6 +118,13 @@ final class WidgetSettings {
     /** 通知组件按新设置重排（不联网）。 */
     static void notifyChanged(Context context) {
         ClockWeatherWidgetProvider.requestRerender(context);
+    }
+
+    static String normalizeColor(String value) {
+        if (C_WHITE.equals(value) || C_DARK.equals(value)) {
+            return value;
+        }
+        return C_AUTO;
     }
 
     static String normalizeWeight(String value) {

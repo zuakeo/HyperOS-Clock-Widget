@@ -230,8 +230,10 @@ public class ClockWeatherWidgetProvider extends AppWidgetProvider {
     private static RemoteViews build(Context context, boolean darkBackground,
                                      int minWidth, int minHeight,
                                      WeatherStore.Snapshot weather, WidgetSettings settings) {
+        // 文字颜色：默认跟随壁纸明暗；壁纸明暗反差大时可在设置里强制白/深。
+        boolean whiteText = isWhiteText(settings, darkBackground);
         RemoteViews views = new RemoteViews(context.getPackageName(),
-                layoutFor(darkBackground, settings.weight));
+                layoutFor(whiteText, settings.weight));
 
         // 时间：秒是可选项；跨天与走字都在桌面进程里完成。
         String time24 = settings.showSeconds ? "HH:mm:ss" : "HH:mm";
@@ -252,10 +254,9 @@ public class ClockWeatherWidgetProvider extends AppWidgetProvider {
         views.setViewVisibility(R.id.ww_lunar,
                 lunar.length() > 0 ? View.VISIBLE : View.GONE);
 
-        // 天气：有缓存就显示；图标按天气代码 + 昼夜切换。
-        // darkBackground=true 表示壁纸偏暗、文字用白色，图标也要用白色那套。
+        // 天气：有缓存就显示；图标按天气代码 + 昼夜切换，颜色跟文字一致。
         if (weather.hasTemp && settings.showIcon) {
-            views.setImageViewResource(R.id.ww_icon, darkBackground
+            views.setImageViewResource(R.id.ww_icon, whiteText
                     ? WeatherClient.iconState(weather.code, weather.day)
                     : WeatherClient.iconStateDark(weather.code, weather.day));
             views.setViewVisibility(R.id.ww_icon, View.VISIBLE);
@@ -327,9 +328,20 @@ public class ClockWeatherWidgetProvider extends AppWidgetProvider {
         return views;
     }
 
+    /** 文字用白还是深：设置里强制优先，否则跟随壁纸明暗。 */
+    static boolean isWhiteText(WidgetSettings settings, boolean darkBackground) {
+        if (WidgetSettings.C_WHITE.equals(settings.textColor)) {
+            return true;
+        }
+        if (WidgetSettings.C_DARK.equals(settings.textColor)) {
+            return false;
+        }
+        return darkBackground;
+    }
+
     /** 按文字色与字重选布局（字重只能靠布局，运行时改不了 fontFamily）。 */
-    private static int layoutFor(boolean darkBackground, String weight) {
-        if (darkBackground) { // 壁纸偏暗 -> 白字
+    private static int layoutFor(boolean whiteText, String weight) {
+        if (whiteText) { // 白字
             switch (weight) {
                 case WidgetSettings.W_LIGHT:
                     return R.layout.ww_white_light;

@@ -41,7 +41,7 @@
     <string name="settings_city_desc">在温度后面显示当前城市</string>
     <string name="settings_seconds">显示秒</string>
     <string name="settings_seconds_desc">秒会让桌面每秒刷新一次，略耗电</string>
-    <string name="settings_section_font">字体</string>
+    <string name="settings_section_font">字体与颜色</string>
     <string name="settings_time_size">时间字号</string>
     <string name="settings_date_size">日期字号</string>
     <string name="settings_weight">时间字重</string>
@@ -49,6 +49,11 @@
     <string name="settings_weight_normal">常规</string>
     <string name="settings_weight_medium">中等</string>
     <string name="settings_weight_bold">粗</string>
+    <string name="settings_text_color">文字颜色</string>
+    <string name="settings_text_color_desc">自动跟随壁纸；壁纸明暗反差大时可手动指定</string>
+    <string name="settings_color_auto">自动</string>
+    <string name="settings_color_white">白色</string>
+    <string name="settings_color_dark">深色</string>
     <string name="settings_section_weather">天气</string>
     <string name="settings_city_title">天气城市</string>
     <string name="settings_city_change">更换</string>
@@ -67,5 +72,5 @@
     <string name="settings_section_about">说明</string>
     <string name="settings_about">天气数据来自 Open-Meteo，免 API Key。\n系统每 30 分钟触发一次组件刷新；断网时显示上一次的温度。\n组件不需要常驻进程，也不需要 root / Xposed 保活。\n设置立即生效，只影响「桌面时钟 · 天气」。</string>
     <string name="settings_city_custom">自定义位置</string>
-    <string name="settings_version">v1.2</string>
+    <string name="settings_version">v1.3</string>
 </resources>

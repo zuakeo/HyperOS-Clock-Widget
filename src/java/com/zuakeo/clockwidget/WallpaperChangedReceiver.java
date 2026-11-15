@@ -26,7 +26,10 @@ public class WallpaperChangedReceiver extends BroadcastReceiver {
         if (intent == null || !Intent.ACTION_WALLPAPER_CHANGED.equals(intent.getAction())) {
             return;
         }
-        Log.i(TAG, "收到换壁纸广播 -> 重新取色");
-        ClockWidgetProvider.refreshAllAsync(context.getApplicationContext());
+        Log.i(TAG, "收到换壁纸广播 -> 两个组件都重新取色");
+        Context app = context.getApplicationContext();
+        ClockWidgetProvider.refreshAllAsync(app);
+        // v1.1 起的天气组件也要跟着换色，只重排、不联网。
+        ClockWeatherWidgetProvider.requestRerender(app);
     }
 }

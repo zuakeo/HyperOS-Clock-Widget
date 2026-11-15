@@ -115,6 +115,63 @@ public class SettingsActivity extends Activity {
         sliderRow(card, R.string.settings_date_size, WidgetSettings.K_DATE_SIZE,
                 WidgetSettings.DATE_SIZE_MIN, WidgetSettings.DATE_SIZE_MAX, 15);
         weightRow(card);
+        textColorRow(card);
+    }
+
+    private void textColorRow(LinearLayout card) {
+        beforeRow(card);
+        LinearLayout block = new LinearLayout(this);
+        block.setOrientation(LinearLayout.VERTICAL);
+        block.setPadding(0, dp(10), 0, dp(2));
+        card.addView(block, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        block.addView(label(R.string.settings_text_color, 15, C_TEXT));
+        block.addView(label(R.string.settings_text_color_desc, 11, C_SUB));
+
+        final String[] values = {
+                WidgetSettings.C_AUTO, WidgetSettings.C_WHITE, WidgetSettings.C_DARK,
+        };
+        int[] labels = {
+                R.string.settings_color_auto, R.string.settings_color_white,
+                R.string.settings_color_dark,
+        };
+
+        RadioGroup group = new RadioGroup(this);
+        group.setOrientation(RadioGroup.HORIZONTAL);
+        LinearLayout.LayoutParams glp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        glp.topMargin = dp(4);
+        block.addView(group, glp);
+
+        String current = WidgetSettings.load(this).textColor;
+        for (int i = 0; i < values.length; i++) {
+            RadioButton rb = new RadioButton(this);
+            rb.setId(4000 + i);
+            rb.setText(labels[i]);
+            rb.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            rb.setTextColor(C_TEXT);
+            rb.setButtonTintList(ColorStateList.valueOf(C_ACCENT));
+            rb.setPadding(0, 0, dp(4), 0);
+            group.addView(rb, new LinearLayout.LayoutParams(0,
+                    ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            if (values[i].equals(current)) {
+                group.check(4000 + i);
+            }
+        }
+
+        group.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup g, int checkedId) {
+                int index = checkedId - 4000;
+                if (index < 0 || index >= values.length) {
+                    return;
+                }
+                WidgetSettings.putString(SettingsActivity.this,
+                        WidgetSettings.K_TEXT_COLOR, values[index]);
+                WidgetSettings.notifyChanged(SettingsActivity.this);
+            }
+        });
     }
 
     private void weightRow(LinearLayout card) {

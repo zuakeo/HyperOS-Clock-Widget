@@ -38,7 +38,9 @@ final class WallpaperWatch {
             BroadcastReceiver receiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context ctx, Intent intent) {
-                    ClockWidgetProvider.refreshAllAsync(ctx.getApplicationContext());
+                    Context app = ctx.getApplicationContext();
+                    ClockWidgetProvider.refreshAllAsync(app);
+                    ClockWeatherWidgetProvider.requestRerender(app);
                 }
             };
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
