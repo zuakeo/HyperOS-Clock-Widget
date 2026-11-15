@@ -22,6 +22,11 @@ SRC="$ROOT/src"
 OUT="$ROOT/build"
 DIST="$ROOT/dist"
 
+# 版本号可覆盖：VERSION_CODE=4 VERSION_NAME=1.3 bash build.sh
+VERSION_CODE="${VERSION_CODE:-3}"
+VERSION_NAME="${VERSION_NAME:-1.2}"
+APK="$DIST/ClockWidget-$VERSION_NAME.apk"
+
 # ---------- 定位工具链 ----------
 TC="${TC:-}"
 if [ -n "$TC" ] && [ -d "$TC/sdk" ]; then
@@ -92,7 +97,7 @@ echo "[2/6] link + generate R.java"
     --manifest "$SRC/AndroidManifest.xml" \
     --java "$OUT/gen" \
     --min-sdk-version 30 --target-sdk-version 36 \
-    --version-code 1 --version-name 1.0 \
+    --version-code "$VERSION_CODE" --version-name "$VERSION_NAME" \
     "$OUT/res.zip"
 
 echo "[3/6] compile java"
@@ -112,8 +117,8 @@ echo "[6/6] align + sign"
 "$JAVA" -jar "$SIGNER_JAR" sign \
     --ks "$KS" --ks-pass pass:android --key-pass pass:android \
     --ks-key-alias androiddebugkey \
-    --out "$DIST/ClockWidget-1.0.apk" "$OUT/aligned.apk"
+    --out "$APK" "$OUT/aligned.apk"
 
-"$JAVA" -jar "$SIGNER_JAR" verify --print-certs "$DIST/ClockWidget-1.0.apk" | head -3
-ls -lh "$DIST/ClockWidget-1.0.apk"
+"$JAVA" -jar "$SIGNER_JAR" verify --print-certs "$APK" | head -3
+ls -lh "$APK"
 echo "OK"

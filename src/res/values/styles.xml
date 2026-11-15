@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 选城市对话框：沿用系统 Material 对话框的动画与遮罩，只换背景和宽度 -->
+    <style name="CityPickerTheme" parent="@android:style/Theme.Material.Dialog.NoActionBar">
+        <item name="android:windowBackground">@drawable/bg_city_dialog</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowCloseOnTouchOutside">true</item>
+        <item name="android:colorAccent">#FF3D7EFF</item>
+        <item name="android:statusBarColor">#00000000</item>
+        <item name="android:navigationBarColor">#00000000</item>
+    </style>
+
+    <!-- 设置页：深色、无 ActionBar，状态栏与页面同色 -->
+    <style name="SettingsTheme" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#FF0F0F11</item>
+        <item name="android:statusBarColor">#FF0F0F11</item>
+        <item name="android:navigationBarColor">#FF0F0F11</item>
+        <item name="android:colorAccent">#FF3D7EFF</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>

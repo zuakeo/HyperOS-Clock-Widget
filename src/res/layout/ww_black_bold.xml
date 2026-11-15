@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 自动生成：tools/gen_widget_layouts.py（文字色=深字（壁纸偏亮），时间字重=粗） -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ww_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_vertical|start"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
+
+    <LinearLayout
+        android:id="@+id/ww_date_touch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingTop="7dp"
+        android:paddingBottom="3dp">
+
+        <TextClock
+            android:id="@+id/ww_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif"
+            android:format24Hour="@string/date_format_compact"
+            android:format12Hour="@string/date_format_compact"
+            android:includeFontPadding="false"
+            android:shadowColor="#4DFFFFFF"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="3"
+            android:textColor="#F21A1A1A"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/ww_lunar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="7dp"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:shadowColor="#4DFFFFFF"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="3"
+            android:textColor="#CC1A1A1A"
+            android:textSize="14sp"
+            android:text="九月三十" />
+
+        <LinearLayout
+            android:id="@+id/ww_weather_touch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp">
+
+            <ImageView
+                android:id="@+id/ww_icon"
+                android:layout_width="17dp"
+                android:layout_height="17dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_wx_clear_dark" />
+
+            <TextView
+                android:id="@+id/ww_temp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="3dp"
+                android:fontFamily="sans-serif"
+                android:includeFontPadding="false"
+                android:shadowColor="#4DFFFFFF"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="3"
+                android:textColor="#F21A1A1A"
+                android:textSize="15sp"
+                android:text="--°" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/ww_city"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:shadowColor="#4DFFFFFF"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="3"
+            android:textColor="#991A1A1A"
+            android:textSize="13sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/ww_time_touch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="0dp"
+        android:paddingBottom="6dp">
+
+        <TextClock
+            android:id="@+id/ww_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:textStyle="bold"
+            android:format24Hour="HH:mm"
+            android:format12Hour="h:mm"
+            android:includeFontPadding="false"
+            android:shadowColor="#4DFFFFFF"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="4"
+            android:textColor="#FF1A1A1A"
+            android:textSize="62sp" />
+    </FrameLayout>
+
+</LinearLayout>

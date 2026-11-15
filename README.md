@@ -1,9 +1,24 @@
 # HyperOS 时钟小部件
 
-一个只显示「**时:分** + **日期**」的 Android 桌面小部件。配色自动跟随壁纸明暗，
-点日期进日历、点时间进时钟。
+两个可以**同时摆在桌面上**的 Android 小部件：
 
-**核心特点：运行期间 App 进程根本不存在** —— 没有前台服务、没有常驻通知、没有闹钟、**零权限**。
+| 组件 | 内容 | 需要联网 |
+|---|---|---|
+| **桌面时钟** | 日期 + 大号时分 | 否 |
+| **桌面时钟 · 天气** | 日期 + 农历 + 天气 + 大号时分 | 是（Open-Meteo，免 API Key） |
+
+两者是两个独立的 `AppWidgetProvider`，各有自己的布局、刷新周期与点击行为，
+互不干扰；配色都跟随壁纸明暗，点日期进日历、点时间进时钟。
+
+**桌面时钟（v1.0）的核心特点：运行期间 App 进程根本不存在** —— 没有前台服务、没有常驻通知、没有闹钟、**零权限**。
+
+**桌面时钟 · 天气（v1.2）** 为了拉天气多了 `INTERNET`（普通权限，安装即授予，不弹窗、不可关闭），
+其余仍然没有服务、没有通知、没有闹钟；天气每 30 分钟随组件刷新拉一次，断网时继续显示上一次的温度。
+v1.2 起带一个桌面启动图标，进去可以关掉不想显示的元素、调字号与字重、切城市或手填经纬度。
+
+> **不需要 root / KernelSU / LSPosed 保活。** 走字是桌面进程里的 `TextClock` 负责，
+> 天气由系统 `AppWidgetService` 每 30 分钟拉起一次 `onUpdate`，拉完就退出。
+> 加常驻服务只会多耗电，不会让组件更准。
 
 ## 实机截图
 
@@ -19,6 +34,16 @@
 
 ![局部放大](docs/widget-zoom-landscape.jpg)
 
+v1.1 天气组件（日期 + 农历 + 天气在上一行，大号时间在下一行，左对齐）：
+
+![天气组件](docs/screenshot-weather.jpg)
+
+v1.2 设置页（带桌面启动图标）：
+
+![设置页](docs/screenshot-settings.jpg)
+
+## 桌面时钟（v1.0）
+
 | 需求 | 实现 |
 |---|---|
 | 只要时分，不要秒 | `TextClock` + `HH:mm` |
@@ -31,6 +56,45 @@
 | 点击跳转 | 日期→日历，时间→时钟 |
 | root | **不需要** |
 
+## 桌面时钟 · 天气（v1.1 / v1.2）
+
+| 需求 | 实现 |
+|---|---|
+| 日期 + 农历 | 日期用 `TextClock`（`M月d日E`，跨天自己走）；农历用本地 `LunarDate` 换算（1900–2100，含闰月） |
+| 天气 | Open-Meteo `current=temperature_2m,weather_code,is_day`；WMO 代码 + 昼夜映射到 9 种线条图标 |
+| 手动选城市 | 点天气区域弹出「天气城市」，中英文搜索（Open-Meteo geocoding），选中即保存并刷新 |
+| 4×2 格子 | `targetCellWidth=4` `targetCellHeight=2`，基准 280×120dp，可拖动缩放 |
+| 跟随壁纸变色 | 与 v1.0 相同的取色逻辑；天气图标备了白色/深色两套 |
+| 点击 | 日期行→日历，时间行→时钟，天气区→选城市，空白处→立刻刷新天气 |
+| 不占后台 | 无服务、无通知、无闹钟；天气在 `onUpdate` 的 `goAsync()` 里拉，拉完即走 |
+
+农历算法用通用的 `lunarInfo` 压缩表，已用春节、闰月等 10 个已知日期校验
+（2020 闰四月、2023 闰二月、2024/2025/2026/2027 春节等）。
+
+## 设置页（v1.2）
+
+桌面新增「桌面时钟」图标，点开就是设置页（没有引 AndroidX，整页用系统控件手搭）。
+
+| 分组 | 可调项 |
+|---|---|
+| 显示内容 | 日期、星期、农历、天气图标、温度、城市名、显示秒 —— 逐项开关 |
+| 字体 | 时间字号 36–110sp、日期字号 10–26sp、时间字重 细/常规/中等/粗 |
+| 天气 | 搜索城市、手动输入经纬度、摄氏/华氏、立即刷新 |
+| 说明 | 数据来源、刷新机制、版本号 |
+
+实现要点：
+
+- **字重不能运行时改**：`fontFamily` 是布局级属性，`RemoteViews` 没有对应方法，
+  所以按 4 档字重 × 2 种文字色**预生成 8 套布局**（`tools/gen_widget_layouts.py`），
+  改字重时换布局资源 ID，桌面会重新 inflate。
+- **字号**用 `RemoteViews.setTextViewTextSize` 下发，设的是基准值，组件拉大时仍按尺寸缩放。
+- **显示项**用 `setViewVisibility`；日期行所有元素都关掉时整行隐藏，不留空白。
+- 设置改动只广播 `RERENDER`（只重排、不联网）；换城市 / 手动坐标 / 刷新按钮才走
+  `WEATHER_REFRESH` 联网。
+- 手动坐标接受 -90~90 / -180~180，保存后城市名显示为「自定义位置」。
+- 天气图标按 `weather_code` + `is_day` 切换：晴/多云分昼夜（太阳、月亮），
+  其余雨、雪、雾、雷暴各一种；白字/深字两套颜色。
+
 ## 兼容性
 
 - `minSdk 30` / `targetSdk 36`
@@ -40,8 +104,12 @@
 ## 安装
 
 1. 从 [Releases](../../releases) 下载 APK，`adb install` 或直接点开安装
-2. 长按桌面空白处 → 小部件 → 找到「桌面时钟」→ 拖到桌面，拉成 4×2
-3. **App 没有启动图标**，这是刻意的：它只提供小部件，不占应用列表
+2. 长按桌面空白处 → 小部件 → 找到「桌面时钟」或「桌面时钟 · 天气」→ 拖到桌面，拉成 4×2
+   - 两个都能拖，互不影响；老组件不会被新版本替换
+3. 天气组件第一次显示的是默认城市「北京」；点日期行右侧的温度区域，
+   搜索并选择自己的城市（中英文都行，如 `Beijing` / `北京`），选完自动刷新
+4. 更细的设置（显示项、字号、字重、摄氏/华氏、手动经纬度）打开桌面上的「**桌面时钟**」图标
+5. App 的启动图标只用于设置页；不打开它时，组件照样工作
 
 ## 用法
 
@@ -49,13 +117,15 @@
 |---|---|
 | 日期行（整行可点） | 打开日历，优先"今天"视图，解析不到退回日历 App |
 | 时间行（整行可点） | 打开时钟 App |
-| 空白处 | 立刻重新取色（换完壁纸想马上生效就点一下） |
+| 天气图标 / 温度 / 城市名（v1.1+） | 打开「天气城市」，搜索并切换城市 |
+| 空白处 | v1.0：立刻重新取色；v1.1+：立刻刷新天气 |
+| 桌面图标「桌面时钟」 | 打开设置页（v1.2） |
 
 ## 字重
 
 | 元素 | 字体 | 说明 |
 |---|---|---|
-| **时间** | `sans-serif-medium` | 当前使用，中等字重 |
+| **时间** | `sans-serif-medium` | v1.0 / v1.1 默认；v1.2 可在设置页切 细/常规/中等/粗 |
 | **日期** | `sans-serif` | 常规字重，未加粗 |
 | 时间（初版） | `sans-serif-light` | 细体；实机看偏纤细，已改为 medium |
 
@@ -117,6 +187,29 @@
 需要在 `AndroidManifest.xml` 里声明 `<queries>`，否则 Android 11+ 的包可见性会让
 `getLaunchIntentForPackage()` 一律返回 null。
 
+### 5. 天气与农历（仅 v1.1）
+
+- **农历**：`TextClock` 只认 `DateFormat` 的日期字符，做不了农历，所以用本地 `LunarDate`
+  （1900–2100 压缩表）在每次组件刷新时重算。代价是跨过午夜后最多晚 30 分钟才换日，
+  但日期行本身仍是 `TextClock`，跨天是准的。
+- **天气**：`onReceive` 收到 `APPWIDGET_UPDATE` 后 `goAsync()` 起一个线程，
+  6 秒超时拉 `api.open-meteo.com`，结果写进 `SharedPreferences` 再下发 `RemoteViews`。
+  失败就继续用上一次的缓存，显示 `--°` 而不是空白。
+- **手动选城市**：`CityPickerActivity` 是个没有启动图标的对话框 Activity，
+  搜索走 `geocoding-api.open-meteo.com`（中英文都行），选中后保存经纬度并广播刷新。
+- **不需要 API Key、不需要定位权限**：城市是用户自己选的，天气只按经纬度取。
+
+### 6. 可配置渲染（v1.2）
+
+设置存在单独的 `SharedPreferences`（`widget_settings`），Provider 每次 `build()` 读一份快照：
+
+- **布局**：4 档字重 × 2 种文字色 = 8 套（`ww_white_*` / `ww_black_*`）。换字重是换 layout
+  资源 ID，桌面会重新 inflate —— 这也是为什么不能只改一个属性。
+- **字号**：`RemoteViews.setTextViewTextSize`，基准值来自设置，再乘组件尺寸系数。
+- **显示项**：`RemoteViews.setViewVisibility`；日期行所有元素都关掉时整行 `GONE`。
+- **刷新**：设置改动只广播 `RERENDER`（不联网）；换城市 / 坐标 / 立即刷新才广播
+  `WEATHER_REFRESH`（联网），避免每拨一个开关就发一次请求。
+
 ## 踩过的坑（都已解决，写在这里省你时间）
 
 1. **MIUI 桌面更新组件时不重新 inflate**
@@ -146,7 +239,8 @@ cd /path/to/repo
 bash build.sh
 ```
 
-产物：`dist/ClockWidget-1.0.apk`
+产物：`dist/ClockWidget-1.2.apk`（版本号可用环境变量覆盖：
+`VERSION_CODE=4 VERSION_NAME=1.3 bash build.sh`）
 
 ### 工具链（实测版本）
 
@@ -188,6 +282,23 @@ adb exec-out screencap -p > before.png  # 等 1 分钟后对比时间
 # 取色走了哪条路径
 adb logcat -d | grep ClockTone
 
+# v1.1 天气有没有拉到、拉的是哪个城市
+adb logcat -d | grep ClockWeather
+
+# v1.1 城市搜索
+adb logcat -d | grep ClockCity
+
+# 手动触发一次天气刷新
+adb shell am broadcast -a com.zuakeo.clockwidget.action.WEATHER_REFRESH \
+  -n com.zuakeo.clockwidget/.ClockWeatherWidgetProvider
+
+# 改完设置只重排、不联网
+adb shell am broadcast -a com.zuakeo.clockwidget.action.RERENDER \
+  -n com.zuakeo.clockwidget/.ClockWeatherWidgetProvider
+
+# 打开设置页
+adb shell am start -n com.zuakeo.clockwidget/.SettingsActivity
+
 # 点击到底跳没跳
 adb shell dumpsys activity activities | grep topResumedActivity
 
@@ -203,16 +314,27 @@ adb logcat -d | grep -o "loadGridConfig oldX:[0-9]* oldY:[0-9]*"
 ├── src
 │   ├── AndroidManifest.xml
 │   ├── java/com/zuakeo/clockwidget
-│   │   ├── ClockWidgetProvider.java     # 小部件主体：渲染 / 点击 / 字号缩放
-│   │   ├── WallpaperTone.java           # 壁纸取色与明暗判定
-│   │   ├── WallpaperChangedReceiver.java# 换壁纸广播（尽力而为）
-│   │   ├── WallpaperWatch.java          # 进程存活期的即时监听
-│   │   └── SystemEventReceiver.java     # 改时间/时区/语言
+│   │   ├── ClockWidgetProvider.java          # v1.0 组件：日期 + 时间
+│   │   ├── ClockWeatherWidgetProvider.java   # v1.1/v1.2 组件：日期 + 农历 + 天气 + 时间
+│   │   ├── SettingsActivity.java             # 设置页（桌面图标入口）
+│   │   ├── CityPickerActivity.java           # 选天气城市（无启动图标）
+│   │   ├── WidgetSettings.java               # 显示项 / 字号 / 字重 / 单位
+│   │   ├── WeatherClient.java                # Open-Meteo 天气 + 城市搜索
+│   │   ├── WeatherStore.java                 # 城市与天气缓存
+│   │   ├── LunarDate.java                    # 公历 -> 农历
+│   │   ├── WallpaperTone.java                # 壁纸取色与明暗判定
+│   │   ├── WallpaperChangedReceiver.java     # 换壁纸广播（尽力而为）
+│   │   ├── WallpaperWatch.java               # 进程存活期的即时监听
+│   │   └── SystemEventReceiver.java          # 改时间/时区/语言
 │   └── res
-│       ├── layout/                      # 深色字版 / 浅色字版
-│       ├── xml/clock_widget_info.xml    # 4×2、可缩放、30 分钟刷新
-│       └── values*/strings.xml          # 中英文日期格式
+│       ├── layout/                           # 8 套组件布局 + 设置页 + 选城市对话框
+│       ├── drawable/ic_wx_*.xml              # 9 种天气图标（白/深两套）
+│       ├── xml/clock_widget_info.xml         # v1.0：4×2、可缩放、30 分钟刷新
+│       ├── xml/clock_weather_widget_info.xml # v1.1+：同上
+│       └── values*/strings.xml               # 中英文日期格式与文案
 ├── tools/inject.py           # 把 dex 注入 aapt2 产出的 APK
+├── tools/gen_weather_icons.py# 生成天气图标
+├── tools/gen_widget_layouts.py # 生成 8 套字重布局
 └── docs/                     # 预览图
 ```
 

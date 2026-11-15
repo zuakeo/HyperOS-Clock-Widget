@@ -4,4 +4,68 @@
     <string name="widget_desc">显示时分与日期，配色自动跟随壁纸明暗</string>
     <!-- 日期行格式，走 android.text.format.DateFormat 语法（支持 M/d/E/L/y） -->
     <string name="date_format">EEE, MMM d</string>
+
+    <!-- v1.1 第二个组件：日期 + 农历 + 天气 + 大号时间 -->
+    <string name="widget_weather_label">桌面时钟 · 天气</string>
+    <string name="widget_weather_desc">日期、农历、天气与大号时间；点天气区域可切换城市</string>
+    <string name="date_format_compact">EEE, MMM d</string>
+
+    <string name="city_title">天气城市</string>
+    <string name="city_current">当前城市：%1$s</string>
+    <string name="city_input_hint">城市名，如 Beijing / 北京</string>
+    <string name="city_search">搜索</string>
+    <string name="city_need_keyword">先输入城市名，中英文都行</string>
+    <string name="city_searching">搜索中…</string>
+    <string name="city_no_result">没找到，换个写法试试（例如 Beijing / 北京）</string>
+    <string name="city_network_error">网络请求失败：%1$s</string>
+    <string name="city_result_count">%1$d 个结果，点一个设为天气城市</string>
+    <string name="city_saved">已切换到 %1$s</string>
+    <string name="city_note">选好后组件自动刷新；点组件空白处也能手动刷新天气。</string>
+
+    <!-- v1.2 设置页 -->
+    <string name="date_format_no_week">MMM d</string>
+    <string name="settings_subtitle">组件设置 · 只影响「桌面时钟 · 天气」</string>
+    <string name="settings_done">完成</string>
+    <string name="settings_section_display">显示内容</string>
+    <string name="settings_date">日期</string>
+    <string name="settings_date_desc">公历日期，如 11月15日</string>
+    <string name="settings_weekday">星期</string>
+    <string name="settings_weekday_desc">在日期后面加「周日」</string>
+    <string name="settings_lunar">农历</string>
+    <string name="settings_lunar_desc">本地换算，支持闰月</string>
+    <string name="settings_icon">天气图标</string>
+    <string name="settings_icon_desc">按天气与昼夜切换</string>
+    <string name="settings_temp">温度</string>
+    <string name="settings_temp_desc">当前温度，可切摄氏/华氏</string>
+    <string name="settings_city">城市名</string>
+    <string name="settings_city_desc">在温度后面显示当前城市</string>
+    <string name="settings_seconds">显示秒</string>
+    <string name="settings_seconds_desc">秒会让桌面每秒刷新一次，略耗电</string>
+    <string name="settings_section_font">字体</string>
+    <string name="settings_time_size">时间字号</string>
+    <string name="settings_date_size">日期字号</string>
+    <string name="settings_weight">时间字重</string>
+    <string name="settings_weight_light">细</string>
+    <string name="settings_weight_normal">常规</string>
+    <string name="settings_weight_medium">中等</string>
+    <string name="settings_weight_bold">粗</string>
+    <string name="settings_section_weather">天气</string>
+    <string name="settings_city_title">天气城市</string>
+    <string name="settings_city_change">更换</string>
+    <string name="settings_coord_title">手动坐标</string>
+    <string name="settings_coord_desc">城市搜不到时直接填经纬度</string>
+    <string name="settings_lat_hint">纬度 39.904</string>
+    <string name="settings_lon_hint">经度 116.407</string>
+    <string name="settings_coord_save">保存坐标</string>
+    <string name="settings_coord_invalid">纬度 -90~90，经度 -180~180</string>
+    <string name="settings_coord_saved">已保存自定义位置</string>
+    <string name="settings_unit">温度单位</string>
+    <string name="settings_unit_c">摄氏 °C</string>
+    <string name="settings_unit_f">华氏 °F</string>
+    <string name="settings_refresh">立即刷新天气</string>
+    <string name="settings_refreshing">正在刷新天气…</string>
+    <string name="settings_section_about">说明</string>
+    <string name="settings_about">天气数据来自 Open-Meteo，免 API Key。\n系统每 30 分钟触发一次组件刷新；断网时显示上一次的温度。\n组件不需要常驻进程，也不需要 root / Xposed 保活。\n设置立即生效，只影响「桌面时钟 · 天气」。</string>
+    <string name="settings_city_custom">自定义位置</string>
+    <string name="settings_version">v1.2</string>
 </resources>
