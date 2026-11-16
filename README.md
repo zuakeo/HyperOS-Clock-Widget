@@ -107,10 +107,24 @@ v1.2 设置页（带桌面启动图标）：
 HyperOS 4 忽略 Android 的 `icon_blacklist clock` 和 `status_bar_show_clock`，root 改设置、重启 SystemUI 都无效——状态栏时间是 MIUI 自己的 `MiuiClock`。所以本应用**兼作 LSPosed 模块**：
 
 - `assets/xposed_init` + `xposedmodule` 元数据，推荐作用域已声明为 `com.android.systemui`（LSPosed 里勾选模块时会自动带上「系统界面」）。
-- Hook `MiuiClock` / `Clock`，每次附着或更新时检查本应用的组件是否存在；存在就 `setVisibility(GONE)`，不存在恢复显示。
+- 桌面**有没有**组件，靠一个空组件 `ClockFlag` 的启用状态告诉模块（见下）。
 - 不需要给人 root；只需要在 LSPosed 里启用本应用（一次性），重启系统界面或设备。
 
-> 注意：如果 MIUI 把时间和日期画在同一个 `MiuiClock` 里，隐藏后日期也会消失；这一版先按「隐藏整个时钟控件」实现，实测后如果日期没了再改成「把文本替换成只剩日期」。
+### 状态栏左上角其实是两个控件（实测 Redmi K Pad / HyperOS 4）
+
+| id | 类 | 内容 |
+|---|---|---|
+| `clock` | `com.android.systemui.baiyang.clock.StatusBarClock` | `00:21` ← 时间，要藏的就是它 |
+| `pad_clock` | `com.android.systemui.statusbar.views.MiuiClock` | `11月17日 周二` ← 日期，必须留着 |
+
+两者都在 `MiuiClockContainer ← phone_status_bar_left_container ← status_bar_contents` 里；锁屏时钟（`keyguard_clock`）、通知栏大时钟（`big_time`/`horizontal_time`）、下拉日期（`date_time`/`normal_control_center_date_view`）都是同族的 `MiuiClock`，**不能用类名一刀切**，只能按「父链里有状态栏容器 + id 是 `clock`」认。
+
+### 四个踩过的坑（都实测过，改之前先看）
+
+1. **hook 必须反射调**：ART 解析 `invoke-static` 时**返回类型也算签名**。Xposed 的 `findAndHookMethod` 官方返回 `XC_MethodHook.Unhook`，v1.6 手写的编译桩写成 `void`，于是每次调用都抛 `NoSuchMethodError`——异常被 catch 吞了，日志里只看到「hook 失败」，表现就是**一个 hook 都没挂上**。现在用反射按「名字 + 参数类型」找方法，不看返回类型，顺带兼容不同 LSPosed 版本。
+2. **SystemUI 里查不到别人的组件**：`AppWidgetManager.getAppWidgetIds(别家 Provider)` 在 Android 17 直接 `SecurityException`（uid 1000 也没有 `BIND_APPWIDGET`）。改用 `PackageManager.getComponentEnabledSetting()` 读一个空组件的启用状态——跨包读不需要权限。app 侧在 `onEnabled/onDisabled/onUpdate/onReceive` 里同步这个标记。
+3. **设一次 GONE 不够**：MIUI 每次刷新会把时钟改回 `VISIBLE`。现在在 `View#setVisibility(int)` 的 **before hook 里改 `param.args[0]`**（不改写方法，所以不会递归），只对时钟实例做 `instanceof` 过滤，开销可忽略。
+4. **别用 `TextView#setText` 兜底**：那会把通知栏大时钟、下拉日期一起藏掉（踩过，日期就是这么没的）。
 
 ## 隐藏桌面图标
 

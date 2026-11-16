@@ -82,6 +82,8 @@ public class ClockWeatherWidgetProvider extends AppWidgetProvider {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent == null ? null : intent.getAction();
+        // 组件增删/开机刷新都会走到这里，顺手校准状态栏时钟用的标记。
+        ClockFlag.sync(context.getApplicationContext());
 
         if (ACTION_RERENDER.equals(action)) {
             final PendingResult pending = goAsync();
@@ -129,7 +131,14 @@ public class ClockWeatherWidgetProvider extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager manager, int[] appWidgetIds) {
         // 正常路径被 onReceive 拦下了；这里只做兜底：按设置推缓存，不联网。
+        ClockFlag.sync(context.getApplicationContext());
         rerenderAll(context.getApplicationContext());
+    }
+
+    @Override
+    public void onDisabled(Context context) {
+        super.onDisabled(context);
+        ClockFlag.sync(context.getApplicationContext());
     }
 
     @Override
@@ -145,6 +154,7 @@ public class ClockWeatherWidgetProvider extends AppWidgetProvider {
     @Override
     public void onEnabled(Context context) {
         super.onEnabled(context);
+        ClockFlag.sync(context.getApplicationContext());
         WallpaperWatch.start(context.getApplicationContext());
     }
 

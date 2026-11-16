@@ -26,4 +26,13 @@ public abstract class XC_MethodHook {
         public void setThrowable(Throwable throwable) {
         }
     }
+
+    /**
+     * findAndHookMethod / hookMethod 的返回值。这个名字和嵌套层级必须和运行时一致：
+     * ART 解析方法时返回类型也算在签名里，写成 void 会 NoSuchMethodError（踩过）。
+     */
+    public static class Unhook {
+        public void unhook() {
+        }
+    }
 }

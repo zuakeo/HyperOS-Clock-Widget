@@ -83,9 +83,16 @@ public class ClockWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager manager, int[] appWidgetIds) {
+        ClockFlag.sync(context.getApplicationContext());
         for (int id : appWidgetIds) {
             render(context, manager, id);
         }
+    }
+
+    @Override
+    public void onDisabled(Context context) {
+        super.onDisabled(context);
+        ClockFlag.sync(context.getApplicationContext());
     }
 
     @Override
@@ -98,6 +105,7 @@ public class ClockWidgetProvider extends AppWidgetProvider {
     @Override
     public void onEnabled(Context context) {
         super.onEnabled(context);
+        ClockFlag.sync(context.getApplicationContext());
         // 进程刚好活着，顺手挂一个即时监听；进程一死它自动消失。
         WallpaperWatch.start(context.getApplicationContext());
     }

@@ -161,6 +161,16 @@
             android:theme="@style/CityPickerTheme" />
 
         <!--
+            只当标记用的空组件：桌面还有组件时它被 enable，模块（跑在 SystemUI 里）
+            靠读它的启用状态判断要不要藏状态栏时钟。默认 disabled = 没有组件。
+            见 ClockFlag.java 里的说明。
+        -->
+        <receiver
+            android:name=".ClockFlag"
+            android:enabled="false"
+            android:exported="false" />
+
+        <!--
             换壁纸广播（尽力而为）。
             ACTION_WALLPAPER_CHANGED 不在 Android 8 的隐式广播豁免名单内，
             后台时可能收不到；收不到也没有代价，最终一致由 30 分钟周期刷新 +

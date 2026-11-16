@@ -49,6 +49,9 @@ public class SettingsActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
+        // 顺手把「桌面还有组件」的标记校准一次（模块在 SystemUI 里读它决定藏不藏状态栏时钟）。
+        ClockFlag.sync(this);
+
         getWindow().setStatusBarColor(C_BG);
         getWindow().setNavigationBarColor(C_BG);
 
