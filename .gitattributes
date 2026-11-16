@@ -7,3 +7,5 @@
 *.jpg binary
 *.png binary
 *.apk binary
+src/assets/xposed_init text eol=lf
+src/assets/scope.list text eol=lf
