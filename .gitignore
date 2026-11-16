@@ -17,3 +17,7 @@ tweaks_apk/
 
 # 与本项目无关的本机文档
 HomeTweaks*.md
+
+
+# MIUI 天气图标：版权资源，不随仓库分发
+src/res/drawable-nodpi/miui_wx_*.webp

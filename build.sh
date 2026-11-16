@@ -22,9 +22,9 @@ SRC="$ROOT/src"
 OUT="$ROOT/build"
 DIST="$ROOT/dist"
 
-# 版本号可覆盖：VERSION_CODE=5 VERSION_NAME=1.4 bash build.sh
-VERSION_CODE="${VERSION_CODE:-4}"
-VERSION_NAME="${VERSION_NAME:-1.3}"
+# 版本号可覆盖：VERSION_CODE=6 VERSION_NAME=1.5 bash build.sh
+VERSION_CODE="${VERSION_CODE:-5}"
+VERSION_NAME="${VERSION_NAME:-1.4}"
 APK="$DIST/ClockWidget-$VERSION_NAME.apk"
 
 # ---------- 定位工具链 ----------
@@ -102,12 +102,14 @@ echo "[2/6] link + generate R.java"
 
 echo "[3/6] compile java"
 find "$SRC/java" "$OUT/gen" -name "*.java" > "$OUT/src.txt"
-"$JAVAC" -encoding UTF-8 --release 8 -nowarn -cp "$AJAR" -d "$OUT/classes" @"$OUT/src.txt"
+"$JAVAC" -encoding UTF-8 --release 8 -nowarn -cp "$AJAR" -d "$OUT/classes" @"$OUT/src.txt" \
+    || { echo "错误：javac 编译失败，停止构建" >&2; exit 1; }
 
 echo "[4/6] dex"
 find "$OUT/classes" -name "*.class" > "$OUT/cls.txt"
 "$JAVA" -cp "$D8_JAR" com.android.tools.r8.D8 --min-api 30 --lib "$AJAR" \
-    --output "$OUT/dex" @"$OUT/cls.txt"
+    --output "$OUT/dex" @"$OUT/cls.txt" \
+    || { echo "错误：d8 失败，停止构建" >&2; exit 1; }
 
 echo "[5/6] inject dex"
 "$PY" "$ROOT/tools/inject.py" "$OUT/base.apk" "$OUT/dex/classes.dex" "$SRC/META-INF" "$OUT/merged.apk"

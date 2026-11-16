@@ -28,10 +28,16 @@ final class WidgetSettings {
     static final String K_DATE_SIZE = "date_size";
     static final String K_WEIGHT = "time_weight";
     static final String K_TEXT_COLOR = "text_color";
+    static final String K_REGION = "sample_region";
 
     static final String C_AUTO = "auto";
+    static final String C_GLOBAL = "global";
     static final String C_WHITE = "white";
     static final String C_DARK = "dark";
+
+    static final String R_TOP = "top";
+    static final String R_FULL = "full";
+    static final String R_BOTTOM = "bottom";
 
     static final String W_LIGHT = "light";
     static final String W_NORMAL = "normal";
@@ -55,11 +61,13 @@ final class WidgetSettings {
     final int dateSizeSp;
     final String weight;
     final String textColor;
+    final String region;
 
     private WidgetSettings(boolean showDate, boolean showWeekday, boolean showLunar,
                            boolean showIcon, boolean showTemp, boolean showCity,
                            boolean showSeconds, boolean fahrenheit,
-                           int timeSizeSp, int dateSizeSp, String weight, String textColor) {
+                           int timeSizeSp, int dateSizeSp, String weight, String textColor,
+                           String region) {
         this.showDate = showDate;
         this.showWeekday = showWeekday;
         this.showLunar = showLunar;
@@ -72,6 +80,7 @@ final class WidgetSettings {
         this.dateSizeSp = dateSizeSp;
         this.weight = weight;
         this.textColor = textColor;
+        this.region = region;
     }
 
     static WidgetSettings load(Context context) {
@@ -88,7 +97,8 @@ final class WidgetSettings {
                 clamp(p.getInt(K_TIME_SIZE, 62), TIME_SIZE_MIN, TIME_SIZE_MAX),
                 clamp(p.getInt(K_DATE_SIZE, 15), DATE_SIZE_MIN, DATE_SIZE_MAX),
                 normalizeWeight(p.getString(K_WEIGHT, W_MEDIUM)),
-                normalizeColor(p.getString(K_TEXT_COLOR, C_AUTO)));
+                normalizeColor(p.getString(K_TEXT_COLOR, C_AUTO)),
+                normalizeRegion(p.getString(K_REGION, R_TOP)));
     }
 
     static void putBool(Context context, String key, boolean value) {
@@ -121,10 +131,17 @@ final class WidgetSettings {
     }
 
     static String normalizeColor(String value) {
-        if (C_WHITE.equals(value) || C_DARK.equals(value)) {
+        if (C_WHITE.equals(value) || C_DARK.equals(value) || C_GLOBAL.equals(value)) {
             return value;
         }
         return C_AUTO;
+    }
+
+    static String normalizeRegion(String value) {
+        if (R_FULL.equals(value) || R_BOTTOM.equals(value)) {
+            return value;
+        }
+        return R_TOP;
     }
 
     static String normalizeWeight(String value) {

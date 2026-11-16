@@ -136,8 +136,9 @@ public class ClockWeatherWidgetProvider extends AppWidgetProvider {
                                           int appWidgetId, Bundle newOptions) {
         // 拖动缩放：按新尺寸重排字号，天气用缓存。
         Context app = context.getApplicationContext();
-        push(app, manager, appWidgetId, tone(app), WeatherStore.load(app),
-                WidgetSettings.load(app));
+        WidgetSettings settings = WidgetSettings.load(app);
+        push(app, manager, appWidgetId, tone(app, settings),
+                WeatherStore.load(app), settings);
     }
 
     @Override
@@ -154,9 +155,9 @@ public class ClockWeatherWidgetProvider extends AppWidgetProvider {
         if (ids == null || ids.length == 0) {
             return;
         }
-        WallpaperTone.Result tone = tone(context);
-        WeatherStore.Snapshot snapshot = WeatherStore.load(context);
         WidgetSettings settings = WidgetSettings.load(context);
+        WallpaperTone.Result tone = tone(context, settings);
+        WeatherStore.Snapshot snapshot = WeatherStore.load(context);
         for (int id : ids) {
             push(context, manager, id, tone, snapshot, settings);
         }
@@ -171,9 +172,9 @@ public class ClockWeatherWidgetProvider extends AppWidgetProvider {
             return;
         }
 
-        WallpaperTone.Result tone = tone(context);
-        WeatherStore.Snapshot cached = WeatherStore.load(context);
         WidgetSettings settings = WidgetSettings.load(context);
+        WallpaperTone.Result tone = tone(context, settings);
+        WeatherStore.Snapshot cached = WeatherStore.load(context);
 
         // 先把缓存推到桌面，避免刷新期间组件空白。
         for (int id : ids) {
@@ -203,9 +204,9 @@ public class ClockWeatherWidgetProvider extends AppWidgetProvider {
         }
     }
 
-    private static WallpaperTone.Result tone(Context context) {
+    private static WallpaperTone.Result tone(Context context, WidgetSettings settings) {
         try {
-            return WallpaperTone.resolve(context);
+            return WallpaperTone.resolve(context, settings);
         } catch (Throwable t) {
             return new WallpaperTone.Result(true, 0xff000000);
         }
@@ -256,9 +257,8 @@ public class ClockWeatherWidgetProvider extends AppWidgetProvider {
 
         // 天气：有缓存就显示；图标按天气代码 + 昼夜切换，颜色跟文字一致。
         if (weather.hasTemp && settings.showIcon) {
-            views.setImageViewResource(R.id.ww_icon, whiteText
-                    ? WeatherClient.iconState(weather.code, weather.day)
-                    : WeatherClient.iconStateDark(weather.code, weather.day));
+            views.setImageViewResource(R.id.ww_icon,
+                    WeatherClient.iconRes(context, WeatherClient.iconKey(weather.code, weather.day)));
             views.setViewVisibility(R.id.ww_icon, View.VISIBLE);
         } else {
             views.setViewVisibility(R.id.ww_icon, View.GONE);

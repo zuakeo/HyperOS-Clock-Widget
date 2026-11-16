@@ -157,89 +157,114 @@ final class WeatherClient {
         }
     }
 
-    /** WMO 天气代码 -> 图标资源；晴与多云再按昼夜区分。 */
-    static int iconState(int code, boolean day) {
+    /** WMO 天气代码 -> 图标键；晴、多云、雾再按昼夜区分。 */
+    static String iconKey(int code, boolean day) {
         switch (code) {
             case 0:
-                return day ? R.drawable.ic_wx_clear : R.drawable.ic_wx_clear_night;
+                return day ? "sunny" : "sunny_night";
             case 1:
             case 2:
-                return day ? R.drawable.ic_wx_partly : R.drawable.ic_wx_partly_night;
+                return day ? "cloudy" : "cloudy_night";
             case 3:
-                return R.drawable.ic_wx_cloudy;
+                return "overcast";
             case 45:
             case 48:
-                return R.drawable.ic_wx_fog;
+                return day ? "fog" : "fog_night";
             case 51:
             case 53:
             case 55:
+            case 61:
+            case 80:
+                return "light_rain";
             case 56:
             case 57:
-            case 61:
-            case 63:
-            case 65:
             case 66:
             case 67:
-            case 80:
+                return "ice_rain";
+            case 63:
             case 81:
+                return "moderate_rain";
+            case 65:
             case 82:
-                return R.drawable.ic_wx_rain;
+                return "heavy_rain";
             case 71:
-            case 73:
-            case 75:
             case 77:
             case 85:
+                return "light_snow";
+            case 73:
+                return "moderate_snow";
+            case 75:
             case 86:
-                return R.drawable.ic_wx_snow;
+                return "heavy_snow";
+            case 79:
+                return "rain_snow";
             case 95:
             case 96:
             case 99:
-                return R.drawable.ic_wx_storm;
+                return "storm";
+            case 30:
+            case 35:
+                return "sand";
             default:
-                return R.drawable.ic_wx_cloudy;
+                return "overcast";
         }
     }
 
-    /** 深色字版本的同状态图标（壁纸偏亮时用）。 */
-    static int iconStateDark(int code, boolean day) {
-        switch (code) {
-            case 0:
-                return day ? R.drawable.ic_wx_clear_dark : R.drawable.ic_wx_clear_night_dark;
-            case 1:
-            case 2:
-                return day ? R.drawable.ic_wx_partly_dark : R.drawable.ic_wx_partly_night_dark;
-            case 3:
-                return R.drawable.ic_wx_cloudy_dark;
-            case 45:
-            case 48:
-                return R.drawable.ic_wx_fog_dark;
-            case 51:
-            case 53:
-            case 55:
-            case 56:
-            case 57:
-            case 61:
-            case 63:
-            case 65:
-            case 66:
-            case 67:
-            case 80:
-            case 81:
-            case 82:
-                return R.drawable.ic_wx_rain_dark;
-            case 71:
-            case 73:
-            case 75:
-            case 77:
-            case 85:
-            case 86:
-                return R.drawable.ic_wx_snow_dark;
-            case 95:
-            case 96:
-            case 99:
-                return R.drawable.ic_wx_storm_dark;
+    /**
+     * 图标资源解析：
+     *  - 本地放了 MIUI 天气图标时（res/drawable-nodpi/miui_wx_*.webp）优先用它；
+     *  - 公开仓库不带这些版权资源，回退到仓库自带的线条矢量图。
+     */
+    static int iconRes(android.content.Context context, String key) {
+        Integer cached = ICONS.get(key);
+        if (cached != null) {
+            return cached;
+        }
+        int res = 0;
+        try {
+            res = context.getResources().getIdentifier(
+                    "miui_wx_" + key, "drawable", context.getPackageName());
+        } catch (Throwable ignored) {
+        }
+        if (res == 0) {
+            res = fallbackIcon(key);
+        }
+        ICONS.put(key, res);
+        return res;
+    }
+
+    private static final java.util.HashMap<String, Integer> ICONS = new java.util.HashMap<>();
+
+    private static int fallbackIcon(String key) {
+        switch (key) {
+            case "sunny":
+                return R.drawable.ic_wx_clear;
+            case "sunny_night":
+                return R.drawable.ic_wx_clear_night;
+            case "cloudy":
+                return R.drawable.ic_wx_partly;
+            case "cloudy_night":
+                return R.drawable.ic_wx_partly_night;
+            case "overcast":
+                return R.drawable.ic_wx_cloudy;
+            case "fog":
+            case "fog_night":
+            case "sand":
+                return R.drawable.ic_wx_fog;
+            case "light_rain":
+            case "moderate_rain":
+            case "heavy_rain":
+            case "ice_rain":
+            case "rain_snow":
+                return R.drawable.ic_wx_rain;
+            case "light_snow":
+            case "moderate_snow":
+            case "heavy_snow":
+                return R.drawable.ic_wx_snow;
+            case "storm":
+                return R.drawable.ic_wx_storm;
             default:
-                return R.drawable.ic_wx_cloudy_dark;
+                return R.drawable.ic_wx_cloudy;
         }
     }
 

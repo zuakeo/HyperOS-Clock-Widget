@@ -53,6 +53,26 @@ public class SettingsActivity extends Activity {
         getWindow().setNavigationBarColor(C_BG);
 
         content = findViewById(R.id.settings_content);
+        // 平板上别让卡片拉满 3000px，限制到 620dp 居中。
+        try {
+            android.graphics.Rect bounds = ((android.view.WindowManager) getSystemService(WINDOW_SERVICE))
+                    .getCurrentWindowMetrics().getBounds();
+            int width = Math.min(bounds.width() - dp(32), dp(620));
+            android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(
+                    width, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
+            content.setLayoutParams(lp);
+            View header = findViewById(R.id.settings_header);
+            if (header != null) {
+                LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(
+                        width, ViewGroup.LayoutParams.WRAP_CONTENT);
+                hlp.gravity = Gravity.CENTER_HORIZONTAL;
+                header.setLayoutParams(hlp);
+            }
+            android.util.Log.i("SettingsUI", "content width=" + width + " content=" + content);
+        } catch (Throwable t) {
+            android.util.Log.e("SettingsUI", "限制宽度失败", t);
+        }
         findViewById(R.id.settings_done).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -116,6 +136,63 @@ public class SettingsActivity extends Activity {
                 WidgetSettings.DATE_SIZE_MIN, WidgetSettings.DATE_SIZE_MAX, 15);
         weightRow(card);
         textColorRow(card);
+        regionRow(card);
+    }
+
+    private void regionRow(LinearLayout card) {
+        beforeRow(card);
+        LinearLayout block = new LinearLayout(this);
+        block.setOrientation(LinearLayout.VERTICAL);
+        block.setPadding(0, dp(10), 0, dp(2));
+        card.addView(block, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        block.addView(label(R.string.settings_region, 15, C_TEXT));
+        block.addView(label(R.string.settings_region_desc, 11, C_SUB));
+
+        final String[] values = {
+                WidgetSettings.R_TOP, WidgetSettings.R_FULL, WidgetSettings.R_BOTTOM,
+        };
+        int[] labels = {
+                R.string.settings_region_top, R.string.settings_region_full,
+                R.string.settings_region_bottom,
+        };
+
+        RadioGroup group = new RadioGroup(this);
+        group.setOrientation(RadioGroup.HORIZONTAL);
+        LinearLayout.LayoutParams glp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        glp.topMargin = dp(4);
+        block.addView(group, glp);
+
+        String current = WidgetSettings.load(this).region;
+        for (int i = 0; i < values.length; i++) {
+            RadioButton rb = new RadioButton(this);
+            rb.setId(5000 + i);
+            rb.setText(labels[i]);
+            rb.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            rb.setTextColor(C_TEXT);
+            rb.setButtonTintList(ColorStateList.valueOf(C_ACCENT));
+            rb.setPadding(0, 0, dp(4), 0);
+            group.addView(rb, new LinearLayout.LayoutParams(0,
+                    ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            if (values[i].equals(current)) {
+                group.check(5000 + i);
+            }
+        }
+
+        group.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup g, int checkedId) {
+                int index = checkedId - 5000;
+                if (index < 0 || index >= values.length) {
+                    return;
+                }
+                WidgetSettings.putString(SettingsActivity.this,
+                        WidgetSettings.K_REGION, values[index]);
+                WidgetSettings.notifyChanged(SettingsActivity.this);
+            }
+        });
     }
 
     private void textColorRow(LinearLayout card) {
@@ -130,11 +207,12 @@ public class SettingsActivity extends Activity {
         block.addView(label(R.string.settings_text_color_desc, 11, C_SUB));
 
         final String[] values = {
-                WidgetSettings.C_AUTO, WidgetSettings.C_WHITE, WidgetSettings.C_DARK,
+                WidgetSettings.C_AUTO, WidgetSettings.C_GLOBAL,
+                WidgetSettings.C_WHITE, WidgetSettings.C_DARK,
         };
         int[] labels = {
-                R.string.settings_color_auto, R.string.settings_color_white,
-                R.string.settings_color_dark,
+                R.string.settings_color_auto, R.string.settings_color_global,
+                R.string.settings_color_white, R.string.settings_color_dark,
         };
 
         RadioGroup group = new RadioGroup(this);

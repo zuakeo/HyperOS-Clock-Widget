@@ -3,32 +3,36 @@ package com.zuakeo.clockwidget;
 import android.app.WallpaperColors;
 import android.app.WallpaperManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 
 /**
- * 壁纸明暗判定 —— 决定组件用深色字还是浅色字。
+ * 壁纸明暗判定 —— 决定组件用白字还是深色字。
  *
- * 两条取色路径（按可用性依次尝试）：
+ * 三条路径，按优先级：
  *
- *  1) WallpaperManager.getDrawable()：拿真实壁纸位图，缩略后求平均亮度，最准。
- *     但 Android 14 起该接口要求 MANAGE_EXTERNAL_STORAGE，否则必定抛 SecurityException
- *     （AOSP 注释：From Android 14, this method should not be used and will always
- *     throw a SecurityException）。本 App 不申请该权限，所以这条路径在
- *     Android 14+ 上会失败并落到路径 2。
+ *  1) v1.3 起：设置里指定「自动（区域）」且 root 可用时，
+ *     用 {@link RootWallpaper} 读壁纸位图，按屏幕可见区域算 WCAG 亮度。
+ *     这是唯一能反映「组件下面到底是什么颜色」的路径。
+ *  2) 系统壁纸主色 getWallpaperColors()（无权限）—— 智能但只代表整张壁纸；
+ *     竖屏裁切后可能完全对不上（本机主色来自看不见的边缘）。
+ *  3) 兜底按系统深浅色模式推断。
  *
- *  2) WallpaperManager.getWallpaperColors()：系统自己算好的壁纸主色，
- *     无权限要求，Android 12+ 都可用，是本 App 的主路径。
- *     它还带 HINT_SUPPORTS_DARK_TEXT 提示，直接说明壁纸是否够浅、能否用深色字。
- *
- * 两条都拿不到时（极少见），按系统深浅色模式推断。
+ * 白/深的判据不再是「亮度 < 0.5」，而是白字与深字谁的 WCAG 对比度高：
+ * 交叉点大约在亮度 0.197。
  */
 final class WallpaperTone {
 
     private static final String TAG = "ClockTone";
+    private static final String CACHE_PREFS = "tone_cache";
+    private static final String K_WHITE = "white";
+    private static final String K_AT = "at";
+    private static final String K_KEY = "key";
+    private static final long CACHE_MS = 6L * 60L * 60L * 1000L;
 
-    /** 壁纸偏暗 -> 用白色字；壁纸偏亮 -> 用深色字。 */
+    /** darkBackground=true 表示壁纸偏暗、要用白字。 */
     static final class Result {
         final boolean darkBackground;
         final int primaryColor;
@@ -42,7 +46,79 @@ final class WallpaperTone {
     private WallpaperTone() {
     }
 
+    /** 老组件（v1.0）用：系统主色。 */
     static Result resolve(Context context) {
+        return global(context);
+    }
+
+    /** 新组件用：按设置决定取色方式。 */
+    static Result resolve(Context context, WidgetSettings settings) {
+        if (WidgetSettings.C_WHITE.equals(settings.textColor)) {
+            return new Result(true, 0xffffffff);
+        }
+        if (WidgetSettings.C_DARK.equals(settings.textColor)) {
+            return new Result(false, 0xff1a1a1a);
+        }
+        if (WidgetSettings.C_GLOBAL.equals(settings.textColor)) {
+            return global(context);
+        }
+
+        // 自动（区域）：先看缓存，再 root 取样，失败回退系统主色。
+        String key = settings.textColor + "|" + settings.region + "|"
+                + RootWallpaper.orientationKey(context);
+        Boolean cached = readCache(context, key);
+        if (cached != null) {
+            return new Result(cached, cached ? 0xffffffff : 0xff1a1a1a);
+        }
+        Boolean sampled = RootWallpaper.sample(context, settings.region);
+        if (sampled != null) {
+            writeCache(context, key, sampled);
+            return new Result(sampled, sampled ? 0xffffffff : 0xff1a1a1a);
+        }
+        android.util.Log.i(TAG, "区域取色不可用，回退壁纸全局主色");
+        return global(context);
+    }
+
+    /** 换壁纸时清缓存。 */
+    static void clearCache(Context context) {
+        try {
+            prefs(context).edit().clear().apply();
+        } catch (Throwable ignored) {
+        }
+        RootWallpaper.invalidate(context);
+    }
+
+    private static Boolean readCache(Context context, String key) {
+        try {
+            SharedPreferences p = prefs(context);
+            long at = p.getLong(K_AT, 0L);
+            if (key.equals(p.getString(K_KEY, ""))
+                    && System.currentTimeMillis() - at < CACHE_MS) {
+                return p.getBoolean(K_WHITE, false);
+            }
+        } catch (Throwable ignored) {
+        }
+        return null;
+    }
+
+    private static void writeCache(Context context, String key, boolean white) {
+        try {
+            prefs(context).edit()
+                    .putString(K_KEY, key)
+                    .putBoolean(K_WHITE, white)
+                    .putLong(K_AT, System.currentTimeMillis())
+                    .apply();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static SharedPreferences prefs(Context context) {
+        return context.getApplicationContext()
+                .getSharedPreferences(CACHE_PREFS, Context.MODE_PRIVATE);
+    }
+
+    /** 系统主色路径（无 root 也能用）。 */
+    private static Result global(Context context) {
         // 路径 1：真实壁纸位图采样（最准，但需要 MANAGE_EXTERNAL_STORAGE）。
         try {
             Drawable drawable = WallpaperManager.getInstance(context).getDrawable();
@@ -52,7 +128,7 @@ final class WallpaperTone {
                     float luminance = averageLuminance(bitmap);
                     int dominant = dominantColor(bitmap);
                     android.util.Log.i(TAG, "取色路径=bitmap 亮度=" + luminance);
-                    return new Result(luminance < 0.5f, dominant);
+                    return new Result(preferWhite(luminance), dominant);
                 }
             }
             android.util.Log.i(TAG, "取色路径=bitmap 但没有位图");
@@ -63,26 +139,20 @@ final class WallpaperTone {
         }
 
         // 路径 2：系统壁纸主色（主路径，无权限要求）。
-        // 注意：getWallpaperColors() 内部会调 StrictMode.assertUiContext，
-        // 在非 UI 上下文里调用可能被判违规（默认只记日志）。这里全程 try/catch 兜住，
-        // 任何异常都退到兜底分支，不会让组件空白。
         try {
             WallpaperColors colors = WallpaperManager.getInstance(context)
                     .getWallpaperColors(WallpaperManager.FLAG_SYSTEM);
             if (colors != null) {
-                // 注意：主色/次色/三色都可能是 null（探测中实测到过 NPE），
-                // 取色前必须逐个判空，否则整条路径会被一个 null 打断。
                 android.graphics.Color primaryColor = colors.getPrimaryColor();
                 if (primaryColor != null) {
                     int primary = primaryColor.toArgb();
                     int hints = colors.getColorHints();
-                    // 系统明确说壁纸够浅、可以用深色字 -> 直接采信。
                     boolean supportsDarkText = (hints & WallpaperColors.HINT_SUPPORTS_DARK_TEXT) != 0;
                     float luminance = relativeLuminance(primary);
                     android.util.Log.i(TAG, "取色路径=colors 主色=" + Integer.toHexString(primary)
                             + " 亮度=" + luminance + " supportsDarkText=" + supportsDarkText);
-                    boolean dark = supportsDarkText ? false : luminance < 0.5f;
-                    return new Result(dark, primary);
+                    boolean white = supportsDarkText || preferWhite(luminance);
+                    return new Result(white, primary);
                 }
                 android.util.Log.i(TAG, "取色路径=colors 但主色为 null");
             } else {
@@ -99,6 +169,13 @@ final class WallpaperTone {
                 == android.content.res.Configuration.UI_MODE_NIGHT_YES;
         android.util.Log.i(TAG, "取色路径=兜底 night=" + night);
         return new Result(!night, Color.DKGRAY);
+    }
+
+    /** 白字与深字谁的 WCAG 对比度高。 */
+    private static boolean preferWhite(float luminance) {
+        float whiteContrast = 1.05f / (luminance + 0.05f);
+        float darkContrast = (luminance + 0.05f) / 0.0575f;
+        return whiteContrast >= darkContrast;
     }
 
     /** 缩略后求平均相对亮度（0=黑 1=白）。 */

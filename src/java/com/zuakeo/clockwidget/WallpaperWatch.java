@@ -39,6 +39,7 @@ final class WallpaperWatch {
                 @Override
                 public void onReceive(Context ctx, Intent intent) {
                     Context app = ctx.getApplicationContext();
+                    WallpaperTone.clearCache(app);
                     ClockWidgetProvider.refreshAllAsync(app);
                     ClockWeatherWidgetProvider.requestRerender(app);
                 }

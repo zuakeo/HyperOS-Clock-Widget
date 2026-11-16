@@ -50,10 +50,16 @@
     <string name="settings_weight_medium">中等</string>
     <string name="settings_weight_bold">粗</string>
     <string name="settings_text_color">文字颜色</string>
-    <string name="settings_text_color_desc">自动跟随壁纸；壁纸明暗反差大时可手动指定</string>
-    <string name="settings_color_auto">自动</string>
+    <string name="settings_text_color_desc">区域取色读壁纸位图，需要 root；失败自动回退壁纸全局色</string>
+    <string name="settings_color_auto">自动（区域）</string>
+    <string name="settings_color_global">壁纸全局</string>
     <string name="settings_color_white">白色</string>
     <string name="settings_color_dark">深色</string>
+    <string name="settings_region">取样区域</string>
+    <string name="settings_region_top">顶部</string>
+    <string name="settings_region_full">整屏</string>
+    <string name="settings_region_bottom">底部</string>
+    <string name="settings_region_desc">只影响「自动（区域）」；组件放哪就选哪一块</string>
     <string name="settings_section_weather">天气</string>
     <string name="settings_city_title">天气城市</string>
     <string name="settings_city_change">更换</string>
@@ -70,7 +76,10 @@
     <string name="settings_refresh">立即刷新天气</string>
     <string name="settings_refreshing">正在刷新天气…</string>
     <string name="settings_section_about">说明</string>
-    <string name="settings_about">天气数据来自 Open-Meteo，免 API Key。\n系统每 30 分钟触发一次组件刷新；断网时显示上一次的温度。\n组件不需要常驻进程，也不需要 root / Xposed 保活。\n设置立即生效，只影响「桌面时钟 · 天气」。</string>
+            <string name="settings_about">天气数据来自 Open-Meteo，免 API Key。
+系统每 30 分钟触发一次刷新；断网时显示上一次的温度。
+「自动（区域）」取色需要 root 读壁纸位图算亮度；组件本身不需要常驻，也不需要保活。
+设置立即生效，只影响「桌面时钟 · 天气」。</string>
     <string name="settings_city_custom">自定义位置</string>
-    <string name="settings_version">v1.3</string>
+    <string name="settings_version">v1.4</string>
 </resources>

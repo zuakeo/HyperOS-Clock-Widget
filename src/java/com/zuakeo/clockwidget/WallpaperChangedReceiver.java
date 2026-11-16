@@ -28,6 +28,7 @@ public class WallpaperChangedReceiver extends BroadcastReceiver {
         }
         Log.i(TAG, "收到换壁纸广播 -> 两个组件都重新取色");
         Context app = context.getApplicationContext();
+        WallpaperTone.clearCache(app);
         ClockWidgetProvider.refreshAllAsync(app);
         // v1.1 起的天气组件也要跟着换色，只重排、不联网。
         ClockWeatherWidgetProvider.requestRerender(app);
