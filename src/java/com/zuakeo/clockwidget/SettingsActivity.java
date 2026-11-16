@@ -563,9 +563,6 @@ public class SettingsActivity extends Activity {
                 if (checked) {
                     requestTile();
                 }
-                if (checked) {
-                    requestTile();
-                }
             }
         });
 

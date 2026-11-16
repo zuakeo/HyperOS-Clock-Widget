@@ -105,13 +105,26 @@
             android:name="xposedscope"
             android:resource="@array/xposed_scope" />
 
-        <!-- 设置页：带启动图标，改完即时生效 -->
+        <!--
+            设置页：改完即时生效。
+
+            第二个 intent-filter 是 LSPosed 的模块设置入口：
+            LSPosed 先用 ACTION_MAIN + de.robv.android.xposed.category.MODULE_SETTINGS
+            找「模块设置」页，找不到才退回 CATEGORY_INFO / LAUNCHER。
+            桌面图标可以整体隐藏（.Launcher 被 disable），这时 LAUNCHER 一路是空的，
+            只有这个 category 能进设置页 —— 所以在 LSPosed 里长按模块 →「打开」就能点进来。
+        -->
         <activity
             android:name=".SettingsActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/SettingsTheme"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="de.robv.android.xposed.category.MODULE_SETTINGS" />
+            </intent-filter>
+        </activity>
 
         <!-- 桌面图标放在 alias 上，设置里可以整体隐藏 -->
         <activity-alias

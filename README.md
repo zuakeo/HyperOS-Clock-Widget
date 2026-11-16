@@ -12,7 +12,7 @@
 
 **桌面时钟（v1.0）的核心特点：运行期间 App 进程根本不存在** —— 没有前台服务、没有常驻通知、没有闹钟、**零权限**。
 
-**桌面时钟 · 天气（v1.6）** 为了拉天气多了 `INTERNET`（普通权限，安装即授予，不弹窗、不可关闭），
+**桌面时钟 · 天气（v1.7）** 为了拉天气多了 `INTERNET`（普通权限，安装即授予，不弹窗、不可关闭），
 其余仍然没有服务、没有通知、没有闹钟；天气每 30 分钟随组件刷新拉一次，断网时继续显示上一次的温度。
 v1.2 起带一个桌面启动图标，进去可以关掉不想显示的元素、调字号与字重、切城市或手填经纬度。
 
@@ -118,7 +118,18 @@ HyperOS 4 忽略 Android 的 `icon_blacklist clock` 和 `status_bar_show_clock`�
 
 - 桌面图标挂在 `activity-alias` 上，开关直接 disable/enable 这个组件；
 - **先加磁贴再隐藏**：打开开关时会请求把「桌面时钟」磁贴加到快捷设置，之后从磁贴进设置；
-- 没有磁贴又隐藏了图标，只能用 `adb shell am start -n com.zuakeo.clockwidget/.SettingsActivity` 打开。
+- 也可以从 **LSPosed → 长按本模块 →「打开」** 进设置页（v1.7 起，见下节）；
+- 三个入口都没有时，还能用 `adb shell am start -n com.zuakeo.clockwidget/.SettingsActivity` 打开。
+
+## 从 LSPosed 打开模块设置（v1.7）
+
+LSPosed 给模块列表的「打开」找入口的顺序是（`AppHelper.getSettingsIntent`）：
+
+1. `ACTION_MAIN` + `de.robv.android.xposed.category.MODULE_SETTINGS` ← 模块设置页，优先
+2. `ACTION_MAIN` + `CATEGORY_INFO`
+3. `ACTION_MAIN` + `CATEGORY_LAUNCHER`
+
+桌面图标挂在可 disable 的 alias 上，隐藏以后第 2、3 步全空，LSPosed 会直接把「打开」这一项删掉。所以 `SettingsActivity` 自己挂了一个 `MODULE_SETTINGS` 的 intent-filter，指向的就是时钟设置页——图标藏了也能从 LSPosed 进去。
 
 ## 兼容性
 
