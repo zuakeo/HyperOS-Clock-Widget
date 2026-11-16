@@ -212,8 +212,9 @@ final class WeatherClient {
 
     /**
      * 图标资源解析：
-     *  - 本地放了 MIUI 天气图标时（res/drawable-nodpi/miui_wx_*.webp）优先用它；
-     *  - 公开仓库不带这些版权资源，回退到仓库自带的线条矢量图。
+     *  - 先找 miui_wx_*（可选的本地图标，不进仓库）；
+     *  - 再找仓库自带的 ic_wx_*（扁平风矢量图）；
+     *  - 都没有就退回 overcast。
      */
     static int iconRes(android.content.Context context, String key) {
         Integer cached = ICONS.get(key);
@@ -224,49 +225,20 @@ final class WeatherClient {
         try {
             res = context.getResources().getIdentifier(
                     "miui_wx_" + key, "drawable", context.getPackageName());
+            if (res == 0) {
+                res = context.getResources().getIdentifier(
+                        "ic_wx_" + key, "drawable", context.getPackageName());
+            }
         } catch (Throwable ignored) {
         }
         if (res == 0) {
-            res = fallbackIcon(key);
+            res = R.drawable.ic_wx_overcast;
         }
         ICONS.put(key, res);
         return res;
     }
 
     private static final java.util.HashMap<String, Integer> ICONS = new java.util.HashMap<>();
-
-    private static int fallbackIcon(String key) {
-        switch (key) {
-            case "sunny":
-                return R.drawable.ic_wx_clear;
-            case "sunny_night":
-                return R.drawable.ic_wx_clear_night;
-            case "cloudy":
-                return R.drawable.ic_wx_partly;
-            case "cloudy_night":
-                return R.drawable.ic_wx_partly_night;
-            case "overcast":
-                return R.drawable.ic_wx_cloudy;
-            case "fog":
-            case "fog_night":
-            case "sand":
-                return R.drawable.ic_wx_fog;
-            case "light_rain":
-            case "moderate_rain":
-            case "heavy_rain":
-            case "ice_rain":
-            case "rain_snow":
-                return R.drawable.ic_wx_rain;
-            case "light_snow":
-            case "moderate_snow":
-            case "heavy_snow":
-                return R.drawable.ic_wx_snow;
-            case "storm":
-                return R.drawable.ic_wx_storm;
-            default:
-                return R.drawable.ic_wx_cloudy;
-        }
-    }
 
     static void log(String message) {
         Log.i(TAG, message);

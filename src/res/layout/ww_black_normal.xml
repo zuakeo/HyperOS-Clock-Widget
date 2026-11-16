@@ -60,10 +60,10 @@
 
             <ImageView
                 android:id="@+id/ww_icon"
-                android:layout_width="21dp"
-                android:layout_height="21dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/ic_wx_clear" />
+                android:src="@drawable/ic_wx_sunny" />
 
             <TextView
                 android:id="@+id/ww_temp"

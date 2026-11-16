@@ -80,5 +80,5 @@
 「自动（区域）」取色需要 root 读壁纸位图算亮度；组件本身不需要常驻，也不需要保活。
 设置立即生效，只影响「桌面时钟 · 天气」。</string>
     <string name="settings_city_custom">自定义位置</string>
-    <string name="settings_version">v1.4</string>
+    <string name="settings_version">v1.5</string>
 </resources>

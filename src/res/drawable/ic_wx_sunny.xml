@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 自动生成：tools/gen_icon_set.py -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path android:pathData="M12,6.8a5.2,5.2 0 1,0 0,10.4a5.2,5.2 0 1,0 0,-10.4z" android:fillColor="#FFC733" />
+    <path android:pathData="M12,4.8L12,2.2M12,19.2L12,21.8M4.8,12L2.2,12M19.2,12L21.8,12M6.9,6.9L5.1,5.1M17.1,17.1L18.9,18.9M18.9,5.1L17.1,6.9M5.1,18.9L6.9,17.1" android:fillColor="#00000000" android:strokeColor="#FFC733" android:strokeWidth="2.0" android:strokeLineCap="round" />
+</vector>

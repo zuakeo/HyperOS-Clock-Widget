@@ -22,9 +22,9 @@ SRC="$ROOT/src"
 OUT="$ROOT/build"
 DIST="$ROOT/dist"
 
-# 版本号可覆盖：VERSION_CODE=6 VERSION_NAME=1.5 bash build.sh
-VERSION_CODE="${VERSION_CODE:-5}"
-VERSION_NAME="${VERSION_NAME:-1.4}"
+# 版本号可覆盖：VERSION_CODE=7 VERSION_NAME=1.6 bash build.sh
+VERSION_CODE="${VERSION_CODE:-6}"
+VERSION_NAME="${VERSION_NAME:-1.5}"
 APK="$DIST/ClockWidget-$VERSION_NAME.apk"
 
 # ---------- 定位工具链 ----------
