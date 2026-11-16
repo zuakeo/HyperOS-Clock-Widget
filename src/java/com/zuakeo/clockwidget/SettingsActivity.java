@@ -83,6 +83,7 @@ public class SettingsActivity extends Activity {
         buildDisplayCard();
         buildFontCard();
         buildWeatherCard();
+        buildDesktopCard();
         buildAboutCard();
     }
 
@@ -516,6 +517,86 @@ public class SettingsActivity extends Activity {
         hideKeyboard();
         ClockWeatherWidgetProvider.requestRefresh(this);
         Toast.makeText(this, R.string.settings_coord_saved, Toast.LENGTH_SHORT).show();
+    }
+
+    // ------------------------------------------------------------ 桌面与状态栏
+
+    private void buildDesktopCard() {
+        LinearLayout card = card(R.string.settings_section_desktop);
+
+        beforeRow(card);
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(0, dp(9), 0, dp(9));
+        card.addView(row, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        LinearLayout texts = new LinearLayout(this);
+        texts.setOrientation(LinearLayout.VERTICAL);
+        row.addView(texts, new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        texts.addView(label(R.string.settings_hide_icon, 15, C_TEXT));
+        texts.addView(label(R.string.settings_hide_icon_desc, 11, C_SUB));
+
+        final android.content.ComponentName alias =
+                new android.content.ComponentName(this, "com.zuakeo.clockwidget.Launcher");
+        final android.content.pm.PackageManager pm = getPackageManager();
+        boolean hidden = pm.getComponentEnabledSetting(alias)
+                == android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+
+        Switch sw = new Switch(this);
+        sw.setChecked(hidden);
+        sw.setThumbTintList(ColorStateList.valueOf(C_ACCENT));
+        sw.setTrackTintList(ColorStateList.valueOf(0x663D7EFF));
+        row.addView(sw);
+        sw.setOnCheckedChangeListener(new android.widget.CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(android.widget.CompoundButton buttonView, boolean checked) {
+                pm.setComponentEnabledSetting(alias,
+                        checked ? android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+                                : android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                        android.content.pm.PackageManager.DONT_KILL_APP);
+                Toast.makeText(SettingsActivity.this,
+                        checked ? R.string.settings_hide_icon_on : R.string.settings_hide_icon_off,
+                        Toast.LENGTH_SHORT).show();
+                if (checked) {
+                    requestTile();
+                }
+                if (checked) {
+                    requestTile();
+                }
+            }
+        });
+
+        beforeRow(card);
+        LinearLayout info = new LinearLayout(this);
+        info.setOrientation(LinearLayout.VERTICAL);
+        info.setPadding(0, dp(10), 0, dp(4));
+        card.addView(info, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        info.addView(label(R.string.settings_clock_module, 15, C_TEXT));
+        info.addView(label(R.string.settings_clock_module_desc, 11, C_SUB));
+    }
+
+    /** 隐藏图标后提醒系统把磁贴加到快捷设置，避免找不到入口。 */
+    private void requestTile() {
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= 33) {
+                android.app.StatusBarManager manager = getSystemService(android.app.StatusBarManager.class);
+                if (manager != null) {
+                    manager.requestAddTileService(
+                            new android.content.ComponentName(this, ClockTileService.class),
+                            getString(R.string.app_name),
+                            android.graphics.drawable.Icon.createWithResource(this,
+                                    R.drawable.ic_tile_clock),
+                            getMainExecutor(),
+                            result -> {
+                            });
+                }
+            }
+        } catch (Throwable ignored) {
+        }
     }
 
     // ------------------------------------------------------------ 说明

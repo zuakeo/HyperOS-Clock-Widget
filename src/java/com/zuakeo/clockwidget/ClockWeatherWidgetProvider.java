@@ -63,6 +63,7 @@ public class ClockWeatherWidgetProvider extends AppWidgetProvider {
     private static final int RC_CLOCK = 0x0D20;
     private static final int RC_CALENDAR = 0x0D21;
     private static final int RC_CITY = 0x0D22;
+    private static final int RC_WEATHER = 0x0D23;
 
     /** 防止系统连发广播时并发拉天气。 */
     private static final AtomicBoolean FETCHING = new AtomicBoolean(false);
@@ -302,6 +303,8 @@ public class ClockWeatherWidgetProvider extends AppWidgetProvider {
         views.setTextViewTextSize(R.id.ww_temp, TypedValue.COMPLEX_UNIT_SP, tempSp);
         views.setTextViewTextSize(R.id.ww_city, TypedValue.COMPLEX_UNIT_SP, citySp);
 
+
+
         // 点击：空白 -> 刷新天气。
         views.setOnClickPendingIntent(R.id.ww_root, refreshPendingIntent(context));
 
@@ -315,13 +318,20 @@ public class ClockWeatherWidgetProvider extends AppWidgetProvider {
             views.setOnClickPendingIntent(R.id.ww_date_touch, calendar);
         }
 
-        // 天气区 / 城市名 -> 选城市。
+        // 天气区 -> MIUI 天气；城市名 -> 选城市。
+        PendingIntent weatherPending = activityPendingIntent(context,
+                weatherIntent(context), RC_WEATHER);
         PendingIntent cityIntent = activityPendingIntent(context,
                 new Intent(context, CityPickerActivity.class)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                                 | Intent.FLAG_ACTIVITY_CLEAR_TOP), RC_CITY);
+        Log.i(TAG, "weatherPending=" + weatherPending);
+        if (weatherPending != null) {
+            views.setOnClickPendingIntent(R.id.ww_weather_touch, weatherPending);
+            views.setOnClickPendingIntent(R.id.ww_icon, weatherPending);
+            views.setOnClickPendingIntent(R.id.ww_temp, weatherPending);
+        }
         if (cityIntent != null) {
-            views.setOnClickPendingIntent(R.id.ww_weather_touch, cityIntent);
             views.setOnClickPendingIntent(R.id.ww_city, cityIntent);
         }
 
@@ -344,24 +354,24 @@ public class ClockWeatherWidgetProvider extends AppWidgetProvider {
         if (whiteText) { // 白字
             switch (weight) {
                 case WidgetSettings.W_LIGHT:
-                    return R.layout.ww_white_light;
+                    return R.layout.ww2_white_light;
                 case WidgetSettings.W_NORMAL:
-                    return R.layout.ww_white_normal;
+                    return R.layout.ww2_white_normal;
                 case WidgetSettings.W_BOLD:
-                    return R.layout.ww_white_bold;
+                    return R.layout.ww2_white_bold;
                 default:
-                    return R.layout.ww_white_medium;
+                    return R.layout.ww2_white_medium;
             }
         }
         switch (weight) { // 壁纸偏亮 -> 深字
             case WidgetSettings.W_LIGHT:
-                return R.layout.ww_black_light;
+                return R.layout.ww2_black_light;
             case WidgetSettings.W_NORMAL:
-                return R.layout.ww_black_normal;
+                return R.layout.ww2_black_normal;
             case WidgetSettings.W_BOLD:
-                return R.layout.ww_black_bold;
+                return R.layout.ww2_black_bold;
             default:
-                return R.layout.ww_black_medium;
+                return R.layout.ww2_black_medium;
         }
     }
 
@@ -400,6 +410,31 @@ public class ClockWeatherWidgetProvider extends AppWidgetProvider {
             return showAlarms.setComponent(alarm);
         }
         return null;
+    }
+
+    private static Intent weatherIntent(Context context) {
+        String[] packages = {
+                "com.miui.weather2", "com.miui.weather",
+                "com.coloros.weather2", "com.oplus.weather",
+                "com.huawei.android.totemweather", "com.samsung.android.weather",
+                "com.google.android.apps.weather",
+        };
+        PackageManager pm = context.getPackageManager();
+        for (String pkg : packages) {
+            try {
+                Intent launch = pm.getLaunchIntentForPackage(pkg);
+                if (launch != null) {
+                    Log.i(TAG, "天气入口=" + pkg + " " + launch.getComponent());
+                    return launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                            | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+        Log.i(TAG, "天气入口=没找到天气 App，回退选城市");
+        // 没有天气 App 就退回选城市，至少还能用。
+        return new Intent(context, CityPickerActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
     }
 
     private static Intent calendarIntent(Context context) {

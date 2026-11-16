@@ -68,8 +68,8 @@ TEMPLATE = """<?xml version="1.0" encoding="utf-8"?>
 
             <ImageView
                 android:id="@+id/ww_icon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/__ICON__" />
 
@@ -135,7 +135,7 @@ TEMPLATE = """<?xml version="1.0" encoding="utf-8"?>
 
 WHITE = dict(
     desc="白字（壁纸偏暗）",
-    prefix="ww_white",
+    prefix="ww2_white",
     icon="ic_wx_sunny",
     date="#F2FFFFFF", lunar="#D9FFFFFF", temp="#F2FFFFFF",
     city="#B3FFFFFF", time="#FFFFFFFF", shadow="#59000000",
@@ -143,7 +143,7 @@ WHITE = dict(
 
 BLACK = dict(
     desc="深字（壁纸偏亮）",
-    prefix="ww_black",
+    prefix="ww2_black",
     icon="ic_wx_sunny",
     date="#F21A1A1A", lunar="#CC1A1A1A", temp="#F21A1A1A",
     city="#991A1A1A", time="#FF1A1A1A", shadow="#4DFFFFFF",

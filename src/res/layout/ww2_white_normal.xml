@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 自动生成：tools/gen_widget_layouts.py（文字色=深字（壁纸偏亮），时间字重=常规） -->
+<!-- 自动生成：tools/gen_widget_layouts.py（文字色=白字（壁纸偏暗），时间字重=常规） -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/ww_root"
     android:layout_width="match_parent"
@@ -26,11 +26,11 @@
             android:format24Hour="@string/date_format_compact"
             android:format12Hour="@string/date_format_compact"
             android:includeFontPadding="false"
-            android:shadowColor="#4DFFFFFF"
+            android:shadowColor="#59000000"
             android:shadowDx="0"
             android:shadowDy="1"
             android:shadowRadius="3"
-            android:textColor="#F21A1A1A"
+            android:textColor="#F2FFFFFF"
             android:textSize="15sp" />
 
         <TextView
@@ -40,11 +40,11 @@
             android:layout_marginStart="7dp"
             android:fontFamily="sans-serif"
             android:includeFontPadding="false"
-            android:shadowColor="#4DFFFFFF"
+            android:shadowColor="#59000000"
             android:shadowDx="0"
             android:shadowDy="1"
             android:shadowRadius="3"
-            android:textColor="#CC1A1A1A"
+            android:textColor="#D9FFFFFF"
             android:textSize="14sp"
             android:text="九月三十" />
 
@@ -60,8 +60,8 @@
 
             <ImageView
                 android:id="@+id/ww_icon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_wx_sunny" />
 
@@ -72,11 +72,11 @@
                 android:layout_marginStart="3dp"
                 android:fontFamily="sans-serif"
                 android:includeFontPadding="false"
-                android:shadowColor="#4DFFFFFF"
+                android:shadowColor="#59000000"
                 android:shadowDx="0"
                 android:shadowDy="1"
                 android:shadowRadius="3"
-                android:textColor="#F21A1A1A"
+                android:textColor="#F2FFFFFF"
                 android:textSize="15sp"
                 android:text="--°" />
         </LinearLayout>
@@ -90,11 +90,11 @@
             android:fontFamily="sans-serif"
             android:includeFontPadding="false"
             android:maxLines="1"
-            android:shadowColor="#4DFFFFFF"
+            android:shadowColor="#59000000"
             android:shadowDx="0"
             android:shadowDy="1"
             android:shadowRadius="3"
-            android:textColor="#991A1A1A"
+            android:textColor="#B3FFFFFF"
             android:textSize="13sp"
             android:visibility="gone" />
     </LinearLayout>
@@ -114,11 +114,11 @@
             android:format24Hour="HH:mm"
             android:format12Hour="h:mm"
             android:includeFontPadding="false"
-            android:shadowColor="#4DFFFFFF"
+            android:shadowColor="#59000000"
             android:shadowDx="0"
             android:shadowDy="1"
             android:shadowRadius="4"
-            android:textColor="#FF1A1A1A"
+            android:textColor="#FFFFFFFF"
             android:textSize="62sp" />
     </FrameLayout>
 

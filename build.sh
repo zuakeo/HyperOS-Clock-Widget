@@ -19,12 +19,12 @@ if command -v cygpath >/dev/null 2>&1; then
     ROOT="$(cygpath -m "$ROOT")"
 fi
 SRC="$ROOT/src"
-OUT="$ROOT/build"
+OUT="$ROOT/build/out-$(date +%s)"
 DIST="$ROOT/dist"
 
-# 版本号可覆盖：VERSION_CODE=7 VERSION_NAME=1.6 bash build.sh
-VERSION_CODE="${VERSION_CODE:-6}"
-VERSION_NAME="${VERSION_NAME:-1.5}"
+# 版本号可覆盖：VERSION_CODE=8 VERSION_NAME=1.7 bash build.sh
+VERSION_CODE="${VERSION_CODE:-7}"
+VERSION_NAME="${VERSION_NAME:-1.6}"
 APK="$DIST/ClockWidget-$VERSION_NAME.apk"
 
 # ---------- 定位工具链 ----------
@@ -86,7 +86,7 @@ echo "工具链: build-tools=$(basename "$BT")  platform=$(basename "$PLATFORM")
 "$JAVAC" -version 2>&1 | sed 's/^/        /'
 
 # ---------- 构建 ----------
-rm -rf "$OUT"
+# 每次用新的输出目录：整目录递归删除会被安全策略拦（文件数超阈值）
 mkdir -p "$OUT/classes" "$OUT/dex" "$OUT/gen" "$DIST"
 
 echo "[1/6] compile resources"
@@ -98,11 +98,22 @@ echo "[2/6] link + generate R.java"
     --java "$OUT/gen" \
     --min-sdk-version 30 --target-sdk-version 36 \
     --version-code "$VERSION_CODE" --version-name "$VERSION_NAME" \
+    -A "$SRC/assets" \
     "$OUT/res.zip"
 
 echo "[3/6] compile java"
+# Windows 的 classpath 分隔符是分号
+CP_SEP=":"
+case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*) CP_SEP=";" ;;
+esac
+# Xposed API 编译桩：只参与编译，不打包（运行时由 LSPosed 提供）
+mkdir -p "$OUT/stubs"
+find "$ROOT/tools/xposed-stubs" -name "*.java" > "$OUT/stubsrc.txt"
+"$JAVAC" -encoding UTF-8 --release 8 -nowarn -d "$OUT/stubs" @"$OUT/stubsrc.txt" \
+    || { echo "错误：Xposed 桩编译失败" >&2; exit 1; }
 find "$SRC/java" "$OUT/gen" -name "*.java" > "$OUT/src.txt"
-"$JAVAC" -encoding UTF-8 --release 8 -nowarn -cp "$AJAR" -d "$OUT/classes" @"$OUT/src.txt" \
+"$JAVAC" -encoding UTF-8 --release 8 -nowarn -cp "$AJAR${CP_SEP}$OUT/stubs" -d "$OUT/classes" @"$OUT/src.txt" \
     || { echo "错误：javac 编译失败，停止构建" >&2; exit 1; }
 
 echo "[4/6] dex"

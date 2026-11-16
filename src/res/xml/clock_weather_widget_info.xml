@@ -10,7 +10,7 @@
     android:maxResizeHeight="276dp"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="1800000"
-    android:initialLayout="@layout/ww_white_medium"
-    android:previewLayout="@layout/ww_white_medium"
+    android:initialLayout="@layout/ww2_white_medium"
+    android:previewLayout="@layout/ww2_white_medium"
     android:widgetCategory="home_screen"
     android:description="@string/widget_weather_desc" />
