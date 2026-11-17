@@ -161,6 +161,23 @@
             android:theme="@style/CityPickerTheme" />
 
         <!--
+            只读地看一眼桌面当前页有没有本应用的组件（桌面是 Flutter，LSPosed 注入不进去）。
+            需要用户在「无障碍」里手动启用一次；结果写进 ClockFlag 组件状态，模块在 SystemUI 读。
+        -->
+        <service
+            android:name=".PageWatchService"
+            android:exported="true"
+            android:label="@string/page_watch_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/page_watch" />
+        </service>
+
+        <!--
             只当标记用的空组件：桌面还有组件时它被 enable，模块（跑在 SystemUI 里）
             靠读它的启用状态判断要不要藏状态栏时钟。默认 disabled = 没有组件。
             见 ClockFlag.java 里的说明。

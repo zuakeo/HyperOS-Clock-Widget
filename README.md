@@ -102,29 +102,39 @@ v1.2 设置页（带桌面启动图标）：
   雨/雪按强度分档，另有冻雨、雨夹雪、雷暴、浮尘，共 17 种；扁平风（白云 + 黄色太阳），
   云朵形状参考 Material Icons（Apache 2.0）。
 
-## 状态栏时钟（内置 LSPosed 模块）
+## 状态栏时钟（按页隐藏，v1.12）
 
-HyperOS 4 忽略 Android 的 `icon_blacklist clock` 和 `status_bar_show_clock`，root 改设置、重启 SystemUI 都无效——状态栏时间是 MIUI 自己的 `MiuiClock`。所以本应用**兼作 LSPosed 模块**：
+HyperOS 4 忽略 Android 的 `icon_blacklist clock` 和 `status_bar_show_clock`，root 改设置、重启 SystemUI 都无效——状态栏时间是 MIUI 自己画的控件。所以本应用**兼作 LSPosed 模块**，把状态栏的时间藏掉，只留日期：
 
-- `assets/xposed_init` + `xposedmodule` 元数据，推荐作用域已声明为 `com.android.systemui`（LSPosed 里勾选模块时会自动带上「系统界面」）。
-- 桌面**有没有**组件，靠一个空组件 `ClockFlag` 的启用状态告诉模块（见下）。
-- 不需要给人 root；只需要在 LSPosed 里启用本应用（一次性），重启系统界面或设备。
+- 桌面**当前这一页**有时钟组件 → 隐藏；翻到没有组件的页、打开其它应用、锁屏 → 自动恢复。
+- LSPosed 作用域只需要勾「**系统界面**」（`com.android.systemui`），一次性。
+- 另外还要在「**无障碍**」里启用一次「桌面时钟 · 页面检测」（设置页「桌面与状态栏」里有入口），它只读地看一眼桌面当前页有没有我们的组件。
+
+### 为什么要拆成两半
+
+| 进程 | 干什么 | 怎么知道的 |
+|---|---|---|
+| 应用自己（无障碍服务 `PageWatchService`） | 判断桌面当前页有没有组件 | 桌面是 Flutter 实现，组件在无障碍树里是一个 `content-desc="桌面时钟"` 的节点，翻页就没了 |
+| `com.android.systemui`（LSPosed 模块） | 按判断结果藏 / 显示时间 | 读 `ClockFlag` 空组件的启用状态（跨包读不用权限） |
+
+之所以不在桌面进程里直接 hook：**HyperOS 4 的桌面 APK 里一个 dex 都没有**（939 个条目全是 `flutter_assets`），而 LSPosed 2.x 对它的「HyperOS Runtime」只加载原生 `.so` 模块——日志里只有 `libHyperCeilerNative.so`、`libhometweaks.so`，普通 dex 模块根本注入不进去（实测过）。
 
 ### 状态栏左上角其实是两个控件（实测 Redmi K Pad / HyperOS 4）
 
 | id | 类 | 内容 |
 |---|---|---|
-| `clock` | `com.android.systemui.baiyang.clock.StatusBarClock` | `00:21` ← 时间，要藏的就是它 |
+| `clock` | `com.android.systemui.baiyang.clock.StatusBarClock` | `08:08` ← 时间，要藏的就是它 |
 | `pad_clock` | `com.android.systemui.statusbar.views.MiuiClock` | `11月17日 周二` ← 日期，必须留着 |
 
-两者都在 `MiuiClockContainer ← phone_status_bar_left_container ← status_bar_contents` 里；锁屏时钟（`keyguard_clock`）、通知栏大时钟（`big_time`/`horizontal_time`）、下拉日期（`date_time`/`normal_control_center_date_view`）都是同族的 `MiuiClock`，**不能用类名一刀切**，只能按「父链里有状态栏容器 + id 是 `clock`」认。
+两者都在 `MiuiClockContainer ← phone_status_bar_left_container ← status_bar_contents` 里；锁屏时钟（`keyguard_clock`）、通知栏大时钟（`big_time`/`horizontal_time`）、下拉日期（`date_time`）都是同族的 `MiuiClock`，**不能用类名一刀切**，只能按「父链里有状态栏容器 + id 是 `clock`」认。
 
-### 四个踩过的坑（都实测过，改之前先看）
+### 五个踩过的坑（都实测过，改之前先看）
 
-1. **hook 必须反射调**：ART 解析 `invoke-static` 时**返回类型也算签名**。Xposed 的 `findAndHookMethod` 官方返回 `XC_MethodHook.Unhook`，v1.6 手写的编译桩写成 `void`，于是每次调用都抛 `NoSuchMethodError`——异常被 catch 吞了，日志里只看到「hook 失败」，表现就是**一个 hook 都没挂上**。现在用反射按「名字 + 参数类型」找方法，不看返回类型，顺带兼容不同 LSPosed 版本。
-2. **SystemUI 里查不到别人的组件**：`AppWidgetManager.getAppWidgetIds(别家 Provider)` 在 Android 17 直接 `SecurityException`（uid 1000 也没有 `BIND_APPWIDGET`）。改用 `PackageManager.getComponentEnabledSetting()` 读一个空组件的启用状态——跨包读不需要权限。app 侧在 `onEnabled/onDisabled/onUpdate/onReceive` 里同步这个标记。
-3. **设一次 GONE 不够**：MIUI 每次刷新会把时钟改回 `VISIBLE`。现在在 `View#setVisibility(int)` 的 **before hook 里改 `param.args[0]`**（不改写方法，所以不会递归），只对时钟实例做 `instanceof` 过滤，开销可忽略。
-4. **别用 `TextView#setText` 兜底**：那会把通知栏大时钟、下拉日期一起藏掉（踩过，日期就是这么没的）。
+1. **hook 必须反射调**：ART 解析 `invoke-static` 时**返回类型也算签名**。Xposed 的 `findAndHookMethod` 官方返回 `XC_MethodHook.Unhook`，v1.6 手写的编译桩写成 `void`，于是每次调用都抛 `NoSuchMethodError`——异常被 catch 吞了，日志里只看到「hook 失败」，表现就是**一个 hook 都没挂上**。现在用反射按「名字 + 参数类型」找方法，不看返回类型。
+2. **SystemUI 里查不到别人的组件**：`AppWidgetManager.getAppWidgetIds(别家 Provider)` 在 Android 17 直接 `SecurityException`（uid 1000 也没有 `BIND_APPWIDGET`）。改用 `PackageManager.getComponentEnabledSetting()` 读一个空组件的启用状态。
+3. **设一次 GONE 不够**：MIUI 每次刷新会把时钟改回 `VISIBLE`。现在在 `View#setVisibility(int)` 的 **before hook 里改 `param.args[0]`**（不改写方法，不会递归），只对时钟实例做 `instanceof` 过滤。
+4. **不能无差别隐藏 `MiuiClock`**：`pad_clock` 是日期，一起藏了日期就没了（踩过，用户当场发现）。
+5. **无障碍树里组件的包名不是本应用**：桌面把组件合并成一个节点，`package` 是 `com.miui.home`，`contentDescription` 才是组件的 label（「桌面时钟」），内部的 RemoteViews 不展开。所以只能按 label 前缀认。
 
 ## 隐藏桌面图标
 

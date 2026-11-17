@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- LSPosed 推荐作用域：只勾系统界面 -->
+    <!--
+        LSPosed 推荐作用域：只勾系统界面。
+        桌面那一半由 app 自己的无障碍服务负责（桌面是 Flutter，LSPosed 注入不进去）。
+    -->
     <string-array name="xposed_scope">
         <item>com.android.systemui</item>
     </string-array>

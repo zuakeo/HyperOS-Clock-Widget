@@ -80,12 +80,17 @@
     <string name="settings_hide_icon_on">已隐藏；入口：快捷设置磁贴，或 LSPosed 长按模块 → 打开</string>
     <string name="settings_hide_icon_off">桌面图标已恢复</string>
     <string name="settings_clock_module">状态栏时钟</string>
-    <string name="settings_clock_module_desc">内置 LSPosed 模块：在 LSPosed 启用本应用并勾选「系统界面」，桌面有时钟组件时会自动隐藏状态栏时间（只留日期）。设置页本身也挂了 LSPosed 的「模块设置」入口。</string>
+    <string name="settings_clock_module_desc">内置 LSPosed 模块：桌面这一页有时钟组件时，状态栏的时间自动隐藏（只留日期）；翻到没有组件的页、或打开其它应用时自动恢复。模块作用域只需要「系统界面」，桌面那一半由上面的无障碍服务负责。</string>
+    <string name="settings_page_watch">按页隐藏状态栏时钟</string>
+    <string name="settings_page_watch_on">已开启：桌面这一页有时钟组件时隐藏，翻到别的页自动恢复</string>
+    <string name="settings_page_watch_off">未开启：点这里去「无障碍」启用「桌面时钟 · 页面检测」</string>
+    <string name="page_watch_label">桌面时钟 · 页面检测</string>
+    <string name="page_watch_desc">只读取桌面当前页有没有本应用的时钟组件，用来决定是否隐藏状态栏时间。不读取、不保存桌面上的任何其它内容。</string>
     <string name="settings_section_about">说明</string>
             <string name="settings_about">天气数据来自 Open-Meteo，免 API Key。
 系统每 30 分钟触发一次刷新；断网时显示上一次的温度。
 「自动（区域）」取色需要 root 读壁纸位图算亮度；组件本身不需要常驻，也不需要保活。
 设置立即生效，只影响「桌面时钟 · 天气」。</string>
     <string name="settings_city_custom">自定义位置</string>
-    <string name="settings_version">v1.9.1</string>
+    <string name="settings_version">v1.12</string>
 </resources>

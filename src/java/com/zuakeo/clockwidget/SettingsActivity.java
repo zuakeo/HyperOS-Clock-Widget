@@ -49,9 +49,6 @@ public class SettingsActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        // 顺手把「桌面还有组件」的标记校准一次（模块在 SystemUI 里读它决定藏不藏状态栏时钟）。
-        ClockFlag.sync(this);
-
         getWindow().setStatusBarColor(C_BG);
         getWindow().setNavigationBarColor(C_BG);
 
@@ -569,6 +566,32 @@ public class SettingsActivity extends Activity {
             }
         });
 
+        // 按页判断需要无障碍服务：HyperOS 4 的桌面是 Flutter，LSPosed 注入不进去，
+        // 只能从外面看桌面当前页的节点树。
+        beforeRow(card);
+        LinearLayout watchRow = new LinearLayout(this);
+        watchRow.setOrientation(LinearLayout.VERTICAL);
+        watchRow.setPadding(0, dp(9), 0, dp(9));
+        card.addView(watchRow, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        watchRow.addView(label(R.string.settings_page_watch, 15, C_TEXT));
+        boolean watching = isPageWatchEnabled();
+        watchRow.addView(label(watching ? R.string.settings_page_watch_on
+                : R.string.settings_page_watch_off, 11, watching ? C_SUB : C_ACCENT));
+        watchRow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    startActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS));
+                    Toast.makeText(SettingsActivity.this, R.string.settings_page_watch_off,
+                            Toast.LENGTH_LONG).show();
+                } catch (Throwable t) {
+                    Toast.makeText(SettingsActivity.this, "打不开无障碍设置",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
         beforeRow(card);
         LinearLayout info = new LinearLayout(this);
         info.setOrientation(LinearLayout.VERTICAL);
@@ -577,6 +600,20 @@ public class SettingsActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         info.addView(label(R.string.settings_clock_module, 15, C_TEXT));
         info.addView(label(R.string.settings_clock_module_desc, 11, C_SUB));
+    }
+
+    /** 无障碍服务有没有被启用（enable 列表里有没有我们的服务）。 */
+    private boolean isPageWatchEnabled() {
+        try {
+            String enabled = android.provider.Settings.Secure.getString(getContentResolver(),
+                    android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+            if (enabled == null) {
+                return false;
+            }
+            return enabled.contains(getPackageName() + "/" + PageWatchService.class.getName());
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
     /** 隐藏图标后提醒系统把磁贴加到快捷设置，避免找不到入口。 */
