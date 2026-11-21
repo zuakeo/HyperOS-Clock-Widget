@@ -11,11 +11,11 @@
 
     <string name="city_title">天气城市</string>
     <string name="city_current">当前城市：%1$s</string>
-    <string name="city_input_hint">城市名，如 Beijing / 北京</string>
+    <string name="city_input_hint">城市名，如 Beijing / 上海</string>
     <string name="city_search">搜索</string>
     <string name="city_need_keyword">先输入城市名，中英文都行</string>
     <string name="city_searching">搜索中…</string>
-    <string name="city_no_result">没找到，换个写法试试（例如 Beijing / 北京）</string>
+    <string name="city_no_result">没找到，换个写法试试（例如 Beijing / 上海）</string>
     <string name="city_network_error">网络请求失败：%1$s</string>
     <string name="city_result_count">%1$d 个结果，点一个设为天气城市</string>
     <string name="city_saved">已切换到 %1$s</string>

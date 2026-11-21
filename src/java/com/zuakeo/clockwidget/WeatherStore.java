@@ -21,7 +21,7 @@ final class WeatherStore {
     private static final String K_IS_DAY = "is_day";
     private static final String K_AT = "at";
 
-    /** 首次使用、还没选城市时的默认城市（用户在北京）。 */
+    /** 首次使用、还没选城市时的兜底城市，用户可在设置页随时更换。 */
     static final String DEFAULT_CITY = "北京";
     static final double DEFAULT_LAT = 39.9042d;
     static final double DEFAULT_LON = 116.4074d;
